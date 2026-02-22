@@ -12,7 +12,7 @@ import { useReportStateStore } from "../../reportStateStore";
 import { MatchEventPosition } from "../../MatchEventPosition";
 import { MatchEventType } from "../../MatchEventType";
 import * as Haptics from "expo-haptics";
-import { Animated, Easing, TextInput, View } from "react-native";
+import { Animated, Easing, Platform, TextInput, View } from "react-native";
 import { colors } from "../../../colors";
 import { Icon } from "../../../components/Icon";
 import { GamePhase } from "../../ReportState";
@@ -30,8 +30,13 @@ export function ScoreFuelInHubAction() {
 
   // textinput is used to allow direct manipulation
   const textContainerRef = useRef<TextInput>(null);
+  const [webDisplayText, setWebDisplayText] = useState("");
   const updateTextDisplay = useCallback((newValue: string) => {
-    textContainerRef.current?.setNativeProps({ text: newValue });
+    if (Platform.OS === "web") {
+      setWebDisplayText(newValue);
+    } else {
+      textContainerRef.current?.setNativeProps({ text: newValue });
+    }
   }, []);
 
   const hubOpacity = useRef(new Animated.Value(1)).current;
@@ -122,6 +127,7 @@ export function ScoreFuelInHubAction() {
         showSoftInputOnFocus={false}
         selectTextOnFocus={false}
         ref={textContainerRef}
+        value={Platform.OS === "web" ? webDisplayText : undefined}
         style={{
           position: "absolute",
           left: 0,
@@ -182,8 +188,13 @@ function GeneralisedFeedAction({
 
   // textinput is used to allow direct manipulation
   const textContainerRef = useRef<TextInput>(null);
+  const [webFeedText, setWebFeedText] = useState("");
   const updateTextDisplay = useCallback((newValue: string) => {
-    textContainerRef.current?.setNativeProps({ text: newValue });
+    if (Platform.OS === "web") {
+      setWebFeedText(newValue);
+    } else {
+      textContainerRef.current?.setNativeProps({ text: newValue });
+    }
   }, []);
 
   const { onStart, onMove, onEnd, isCounting, forceStop } =
@@ -237,6 +248,7 @@ function GeneralisedFeedAction({
           showSoftInputOnFocus={false}
           selectTextOnFocus={false}
           ref={textContainerRef}
+          value={Platform.OS === "web" ? webFeedText : undefined}
           style={{
             position: "absolute",
             left: 0,
