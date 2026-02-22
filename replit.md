@@ -28,6 +28,11 @@ A React Native / Expo mobile app for FRC (FIRST Robotics Competition) scouting d
 - `assets/` - Images, fonts, SVG components
 - `components/` - Reusable UI components
 
+## User Preferences
+- **Change Reporting**: Always report exactly which files were changed and what was modified
+- **Code Style**: Preserve existing code style, do not delete comments, place code in appropriate files following existing patterns
+- **Language**: Communicate in Hebrew
+
 ## Environment Variables
 - `EXPO_PUBLIC_API_URL` - Backend API URL (see `.env.example`)
 
