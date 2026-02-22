@@ -8,6 +8,7 @@ export enum MatchEventPosition {
   Depot,
   Outpost,
   None,
+  CenterBack,
 }
 
 export const startingPositions = {
@@ -16,4 +17,5 @@ export const startingPositions = {
   Hub: MatchEventPosition.Hub,
   RightBump: MatchEventPosition.RightBump,
   RightTrench: MatchEventPosition.RightTrench,
+  CenterBack: MatchEventPosition.CenterBack,
 } as const satisfies Record<string, MatchEventPosition>;
