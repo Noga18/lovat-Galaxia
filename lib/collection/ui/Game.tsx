@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useReportStateStore } from "../reportStateStore";
 import { router } from "expo-router";
-import { PreMatchActions } from "./actions/PreMatchActions";
+import { ShootingPositionActions } from "./actions/ShootingPositionActions";
 import { GameViewTemplate } from "./GameViewTemplate";
 import { GamePhase } from "../ReportState";
 import * as Haptics from "expo-haptics";
@@ -136,17 +136,14 @@ export function Game() {
   const gameStates = {
     preMatch: {
       gamePhaseMessage: "Pre-Match",
-      field: (
-        <>
-          <PreMatchActions />
-        </>
-      ),
-      startEnabled: reportState.startPosition !== undefined,
+      field: <></>,
+      startEnabled: true,
     },
     autoAllianceZone: {
       gamePhaseMessage: "Auto",
       field: (
         <>
+          <ShootingPositionActions />
           <ScoreFuelInHubAction />
           <DepotIntakeAction />
           <ClimbAction phase={GamePhase.Auto} />
@@ -159,6 +156,7 @@ export function Game() {
       gamePhaseMessage: "Auto",
       field: (
         <>
+          <ShootingPositionActions />
           <TraversalActions />
           <NeutralZoneAutoIntakeAction />
           <AutoDisruptAction />
@@ -170,6 +168,7 @@ export function Game() {
       gamePhaseMessage: "Teleop",
       field: (
         <>
+          <ShootingPositionActions />
           <ScoreFuelInHubAction />
           <OutpostAction setOverlay={(value) => setOverlay(value)} />
           <TeleopFeedAction />
@@ -182,6 +181,7 @@ export function Game() {
       gamePhaseMessage: "Teleop",
       field: (
         <>
+          <ShootingPositionActions />
           <ScoreFuelInHubAction />
           <OutpostAction setOverlay={(value) => setOverlay(value)} />
           <TeleopFeedAction />

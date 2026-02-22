@@ -4,6 +4,8 @@
 A React Native / Expo mobile app for FRC (FIRST Robotics Competition) scouting data collection. Built with Expo SDK 54, expo-router for navigation, and designed primarily for iOS and Android with web support.
 
 ## Recent Changes
+- 2026-02-22: Changed 6 position squares from pre-match starting position to shooting position markers in Auto/Teleop phases (ShootingPositionActions component)
+- 2026-02-22: Added 6th starting position (CenterBack) and arranged positions in 3x2 grid layout
 - 2026-02-22: Initial Replit setup, installed Node.js 22, npm dependencies, react-native-web, removed deprecated babel plugin (expo-router/babel)
 
 ## Project Architecture
