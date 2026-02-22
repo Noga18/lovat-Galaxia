@@ -31,7 +31,7 @@ A React Native / Expo mobile app for FRC (FIRST Robotics Competition) scouting d
 ## User Preferences
 - **Change Reporting**: Always report exactly which files were changed and what was modified
 - **Code Style**: Preserve existing code style, do not delete comments, place code in appropriate files following existing patterns
-- **Language**: Communicate in Hebrew
+- **Language**: Communicate with user in Hebrew, but write all code comments in English
 
 ## Environment Variables
 - `EXPO_PUBLIC_API_URL` - Backend API URL (see `.env.example`)
