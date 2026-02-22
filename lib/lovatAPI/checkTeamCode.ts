@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { get } from "./lovatAPI";
+import { TEST_MODE_CODE, TEST_TEAM } from "../testMode";
 
 export const checkTeamCode = async (code: string) => {
+  // Bypass API call in test mode
+  if (code === TEST_MODE_CODE) {
+    return TEST_TEAM;
+  }
+
   const response = await get(
     `/v1/manager/scouter/checkcode?code=${encodeURIComponent(code)}`,
   );

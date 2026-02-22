@@ -1,6 +1,7 @@
 import { get } from "./lovatAPI";
 import z from "zod";
 import { useScouterStore } from "../storage/userStores";
+import { isTestMode, TEST_TOURNAMENTS } from "../testMode";
 
 export const tournamentSchema = z.object({
   key: z.string(),
@@ -12,6 +13,11 @@ export const tournamentSchema = z.object({
 export type Tournament = z.infer<typeof tournamentSchema>;
 
 export const getTournaments = async () => {
+  // Return mock tournaments in test mode
+  if (isTestMode()) {
+    return TEST_TOURNAMENTS;
+  }
+
   const scouter = useScouterStore.getState().value;
   const response = await get(
     `/v1/manager/scouters/${scouter!.uuid}/tournaments`,
