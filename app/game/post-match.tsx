@@ -261,17 +261,6 @@ export default function PostMatch() {
             }}
           />
           <PostMatchSelector
-            title="Driver ability"
-            items={driverAbilityDescriptions.map((desc) => ({
-              label: desc.localizedDescription,
-              description: desc.localizedLongDescription,
-              value: desc.ability,
-            }))}
-            selected={reportState.driverAbility}
-            onChange={reportState.setDriverAbility}
-          />
-
-          <PostMatchSelector
             title="Scores While Moving"
             items={scoresWhileMovingDescriptions.map((desc) => ({
               label: desc.localizedDescription,
