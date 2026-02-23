@@ -21,8 +21,6 @@ import TraversalActions from "./actions/TraversalActions";
 import { ClimbAction } from "./actions/ClimbAction";
 import { AutoDisruptAction } from "./actions/AutoDisruptAction";
 import { OutpostAction } from "./actions/OutpostAction";
-import { CampAction } from "./actions/CampAction";
-import { DefendAction } from "./actions/DefendAction";
 import { MatchEventType } from "../MatchEventType";
 import { FieldTraversal } from "../FieldTraversal";
 import { IntakeType } from "../IntakeType";
@@ -172,8 +170,6 @@ export function Game() {
           <ScoreFuelInHubAction />
           <OutpostAction setOverlay={(value) => setOverlay(value)} />
           <TeleopFeedAction />
-          <CampAction />
-          <DefendAction />
         </>
       ),
     },
@@ -185,8 +181,6 @@ export function Game() {
           <ScoreFuelInHubAction />
           <OutpostAction setOverlay={(value) => setOverlay(value)} />
           <TeleopFeedAction />
-          <CampAction />
-          <DefendAction />
           <ClimbAction phase={GamePhase.Endgame} />
         </>
       ),
@@ -220,7 +214,7 @@ export function Game() {
           <NeutralZoneAutoIntakeAction />
           <AutoFeedAction />
           <OutpostAction setOverlay={(value) => setOverlay(value)} /> */}
-          <CampAction />
+          {/* <CampAction /> */}
         </>
       ),
     },
