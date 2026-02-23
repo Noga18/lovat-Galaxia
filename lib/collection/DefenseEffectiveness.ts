@@ -1,9 +1,7 @@
 export enum DefenseEffectiveness {
-  Terrible,
-  Poor,
-  Average,
-  Good,
-  Great,
+  DidNotDefend,
+  TriedToDefend,
+  Defended,
 }
 
 export type DefenseEffectivenessDescription = {
@@ -15,38 +13,24 @@ export type DefenseEffectivenessDescription = {
 
 export const defenseEffectivenessDescriptions = [
   {
-    effectiveness: DefenseEffectiveness.Great,
-    localizedDescription: "Great",
+    effectiveness: DefenseEffectiveness.Defended,
+    localizedDescription: "Defended",
     localizedLongDescription:
-      "The robot's defense was exceptional and highly disruptive.",
-    num: 4,
-  },
-  {
-    effectiveness: DefenseEffectiveness.Good,
-    localizedDescription: "Good",
-    localizedLongDescription:
-      "The robot's defense was effective and impactful.",
-    num: 3,
-  },
-  {
-    effectiveness: DefenseEffectiveness.Average,
-    localizedDescription: "Average",
-    localizedLongDescription:
-      "The robot's defense was adequate but not exceptional.",
+      "The robot successfully played defense.",
     num: 2,
   },
   {
-    effectiveness: DefenseEffectiveness.Poor,
-    localizedDescription: "Poor",
+    effectiveness: DefenseEffectiveness.TriedToDefend,
+    localizedDescription: "Tried to Defend",
     localizedLongDescription:
-      "The robot's defense was mostly ineffective with minimal impact.",
+      "The robot attempted to play defense but was not effective.",
     num: 1,
   },
   {
-    effectiveness: DefenseEffectiveness.Terrible,
-    localizedDescription: "Terrible",
+    effectiveness: DefenseEffectiveness.DidNotDefend,
+    localizedDescription: "Did Not Defend",
     localizedLongDescription:
-      "The robot's defense was ineffective and detrimental.",
+      "The robot did not play defense.",
     num: 0,
   },
 ] as const satisfies DefenseEffectivenessDescription[];
