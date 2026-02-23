@@ -3,6 +3,7 @@ import { TouchableOpacity, View, Text, Modal, StyleSheet } from "react-native";
 import { MatchEventPosition } from "../../MatchEventPosition";
 import { MatchEventType } from "../../MatchEventType";
 import { FieldElement } from "../FieldElement";
+import { GamePhase } from "../../ReportState";
 import React, { useState } from "react";
 import { figmaDimensionsToFieldInsets } from "../../util";
 import * as Haptics from "expo-haptics";
@@ -71,15 +72,22 @@ const shootingPositions: Array<{
   },
 ];
 
+const ACCURACY_RATINGS = [1, 2, 3, 4, 5];
+
 export const ShootingPositionActions = () => {
   const reportState = useReportStateStore();
+  const gamePhase = reportState.gamePhase;
+  const isTeleop = gamePhase === GamePhase.Teleop || gamePhase === GamePhase.Endgame;
+
   const [activePosition, setActivePosition] = useState<MatchEventPosition | null>(null);
   const [count, setCount] = useState(0);
+  const [accuracy, setAccuracy] = useState(0);
 
   const handlePositionPress = (position: MatchEventPosition) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setActivePosition(position);
     setCount(0);
+    setAccuracy(0);
   };
 
   const handleIncrement = () => {
@@ -92,27 +100,51 @@ export const ShootingPositionActions = () => {
     setCount((prev) => Math.max(0, prev - 1));
   };
 
+  const handleAccuracySelect = (rating: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAccuracy(rating);
+  };
+
   const handleConfirm = () => {
-    if (activePosition !== null && count > 0) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      reportState.addEvent({
-        type: MatchEventType.StartScoring,
-        position: activePosition,
-      });
-      reportState.addEvent({
-        type: MatchEventType.StopScoring,
-        position: activePosition,
-        quantity: count,
-      });
+    if (activePosition !== null) {
+      if (isTeleop && accuracy > 0) {
+        // In Teleop: record accuracy rating
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        reportState.addEvent({
+          type: MatchEventType.StartScoring,
+          position: activePosition,
+        });
+        reportState.addEvent({
+          type: MatchEventType.StopScoring,
+          position: activePosition,
+          quantity: accuracy,
+        });
+      } else if (!isTeleop && count > 0) {
+        // In Auto: record fuel count
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        reportState.addEvent({
+          type: MatchEventType.StartScoring,
+          position: activePosition,
+        });
+        reportState.addEvent({
+          type: MatchEventType.StopScoring,
+          position: activePosition,
+          quantity: count,
+        });
+      }
     }
     setActivePosition(null);
     setCount(0);
+    setAccuracy(0);
   };
 
   const handleCancel = () => {
     setActivePosition(null);
     setCount(0);
+    setAccuracy(0);
   };
+
+  const hasValue = isTeleop ? accuracy > 0 : count > 0;
 
   return (
     <>
@@ -146,34 +178,63 @@ export const ShootingPositionActions = () => {
           onPress={handleCancel}
         >
           <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.title}>Fuel Scored</Text>
+            <Text style={styles.title}>
+              {isTeleop ? "Accuracy Rating" : "Fuel Scored"}
+            </Text>
 
-            <View style={styles.counterRow}>
-              <TouchableOpacity
-                style={[styles.counterButton, count === 0 && styles.counterButtonDisabled]}
-                onPress={handleDecrement}
-                disabled={count === 0}
-              >
-                <Text style={styles.counterButtonText}>−</Text>
-              </TouchableOpacity>
+            {isTeleop ? (
+              <View style={styles.accuracyRow}>
+                {ACCURACY_RATINGS.map((rating) => (
+                  <TouchableOpacity
+                    key={rating}
+                    style={[
+                      styles.accuracyButton,
+                      accuracy === rating && styles.accuracyButtonSelected,
+                    ]}
+                    onPress={() => handleAccuracySelect(rating)}
+                  >
+                    <Text
+                      style={[
+                        styles.accuracyButtonText,
+                        accuracy === rating && styles.accuracyButtonTextSelected,
+                      ]}
+                    >
+                      {rating}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.counterRow}>
+                <TouchableOpacity
+                  style={[styles.counterButton, count === 0 && styles.counterButtonDisabled]}
+                  onPress={handleDecrement}
+                  disabled={count === 0}
+                >
+                  <Text style={styles.counterButtonText}>−</Text>
+                </TouchableOpacity>
 
-              <Text style={styles.countText}>{count}</Text>
+                <Text style={styles.countText}>{count}</Text>
 
-              <TouchableOpacity
-                style={styles.counterButton}
-                onPress={handleIncrement}
-              >
-                <Text style={styles.counterButtonText}>+</Text>
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  style={styles.counterButton}
+                  onPress={handleIncrement}
+                >
+                  <Text style={styles.counterButtonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             <TouchableOpacity
-              style={[styles.confirmButton, count === 0 && styles.confirmButtonDisabled]}
-              onPress={handleConfirm}
-              disabled={count === 0}
+              style={[styles.confirmButton, !hasValue && styles.confirmButtonDisabled]}
+              onPress={hasValue ? handleConfirm : handleCancel}
             >
               <Text style={styles.confirmButtonText}>
-                {count === 0 ? "Cancel" : `Confirm (${count})`}
+                {hasValue
+                  ? isTeleop
+                    ? `Confirm (${accuracy}/5)`
+                    : `Confirm (${count})`
+                  : "Cancel"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -194,7 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.default,
     borderRadius: 16,
     padding: 24,
-    width: 260,
+    width: 280,
     alignItems: "center",
     gap: 20,
   },
@@ -230,6 +291,30 @@ const styles = StyleSheet.create({
     fontSize: 48,
     minWidth: 60,
     textAlign: "center",
+  },
+  accuracyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  accuracyButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.secondaryContainer.default,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  accuracyButtonSelected: {
+    backgroundColor: "#3EE679",
+  },
+  accuracyButtonText: {
+    color: colors.onBackground.default,
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  accuracyButtonTextSelected: {
+    color: "#1f1f1f",
   },
   confirmButton: {
     backgroundColor: "#3EE679",
