@@ -116,18 +116,16 @@ export default function PostMatch() {
               multiSelect
             />
           )}
-          {shouldShowDefenseEffectiveness && (
-            <PostMatchSelector
-              title="Defense Effectiveness"
-              items={defenseEffectivenessDescriptions.map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value: desc.effectiveness,
-              }))}
-              selected={reportState.defenseEffectiveness}
-              onChange={reportState.setDefenseEffectiveness}
-            />
-          )}
+          <PostMatchSelector
+            title="Defense Effectiveness"
+            items={defenseEffectivenessDescriptions.map((desc) => ({
+              label: desc.localizedDescription,
+              description: desc.localizedLongDescription,
+              value: desc.effectiveness,
+            }))}
+            selected={reportState.defenseEffectiveness}
+            onChange={reportState.setDefenseEffectiveness}
+          />
           <PostMatchSelector<string, IntakeType>
             title="Intake Type"
             items={intakeTypeDescriptions
