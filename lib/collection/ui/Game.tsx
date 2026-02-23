@@ -24,6 +24,7 @@ import { OutpostAction } from "./actions/OutpostAction";
 import { MatchEventType } from "../MatchEventType";
 import { FieldTraversal } from "../FieldTraversal";
 import { IntakeType } from "../IntakeType";
+import { PreMatchActions } from "./actions/PreMatchActions";
 
 export function Game() {
   const reportState = useReportStateStore();
@@ -134,8 +135,12 @@ export function Game() {
   const gameStates = {
     preMatch: {
       gamePhaseMessage: "Pre-Match",
-      field: <></>,
       startEnabled: true,
+      field: (
+        <>
+          <PreMatchActions/>
+        </>
+      ),
     },
     autoAllianceZone: {
       gamePhaseMessage: "Auto",
