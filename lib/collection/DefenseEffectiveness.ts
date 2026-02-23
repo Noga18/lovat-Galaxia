@@ -21,9 +21,9 @@ export const defenseEffectivenessDescriptions = [
   },
   {
     effectiveness: DefenseEffectiveness.TriedToDefend,
-    localizedDescription: "Tried to Defend",
+    localizedDescription: "Crossed to Other Side",
     localizedLongDescription:
-      "The robot attempted to play defense but was not effective.",
+      "The robot only crossed to the other side of the field.",
     num: 1,
   },
   {
