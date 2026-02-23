@@ -246,13 +246,13 @@ const UploadIndicator = ({ state }: { state: UploadState }) => {
             alignItems: "center",
           }}
         >
-          {effectiveState === UploadState.None ||
-            (effectiveState === UploadState.Uploading && (
+          {(effectiveState === UploadState.None ||
+            effectiveState === UploadState.Uploading) && (
               <ActivityIndicator
                 size="small"
                 color={colors.onBackground.default}
               />
-            ))}
+            )}
           {(effectiveState === UploadState.Uploaded ||
             effectiveState == UploadState.AlreadyUploaded) && (
             <Icon name="check" color="#44ca6c" size={16} />
