@@ -103,18 +103,6 @@ export default function PostMatch() {
             onChange={reportState.setRobotRole}
             multiSelect
           />
-          {reportState.hasEventOfType(MatchEventType.StartScoring) && (
-            <PostMatchSelector
-              title="Accuracy"
-              items={accuracyDescriptions.map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value: desc.accuracy,
-              }))}
-              selected={reportState.accuracy}
-              onChange={reportState.setAccuracy}
-            />
-          )}
           {reportState.robotRole.includes(RobotRole.Feeding) && (
             <PostMatchSelector
               title="Feeder Type"
@@ -339,9 +327,7 @@ export default function PostMatch() {
             <Button
               disabled={
                 trainingModeEnabled ||
-                endgameClimbIsMismatched ||
-                (reportState.hasEventOfType(MatchEventType.StartScoring) &&
-                  reportState.accuracy === null)
+                endgameClimbIsMismatched
               }
               variant="primary"
               onPress={() => {
