@@ -73,31 +73,36 @@ const shootingPositions: Array<{
 ];
 
 const ACCURACY_RATINGS = [1, 2, 3, 4, 5];
+const FLASH_DURATION_MS = 300;
 
 export const ShootingPositionActions = () => {
   const reportState = useReportStateStore();
   const gamePhase = reportState.gamePhase;
   const isTeleop = gamePhase === GamePhase.Teleop || gamePhase === GamePhase.Endgame;
 
+  // Teleop: modal with accuracy rating
   const [activePosition, setActivePosition] = useState<MatchEventPosition | null>(null);
-  const [count, setCount] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
+
+  // Auto: brief flash to indicate position was marked
+  const [flashedPosition, setFlashedPosition] = useState<MatchEventPosition | null>(null);
 
   const handlePositionPress = (position: MatchEventPosition) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setActivePosition(position);
-    setCount(0);
-    setAccuracy(0);
-  };
 
-  const handleIncrement = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setCount((prev) => prev + 1);
-  };
-
-  const handleDecrement = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setCount((prev) => Math.max(0, prev - 1));
+    if (isTeleop) {
+      // In Teleop: open accuracy rating modal
+      setActivePosition(position);
+      setAccuracy(0);
+    } else {
+      // In Auto: just mark the shooting position, fuel count comes from Hub
+      reportState.addEvent({
+        type: MatchEventType.StartScoring,
+        position: position,
+      });
+      setFlashedPosition(position);
+      setTimeout(() => setFlashedPosition(null), FLASH_DURATION_MS);
+    }
   };
 
   const handleAccuracySelect = (rating: number) => {
@@ -106,45 +111,26 @@ export const ShootingPositionActions = () => {
   };
 
   const handleConfirm = () => {
-    if (activePosition !== null) {
-      if (isTeleop && accuracy > 0) {
-        // In Teleop: record accuracy rating
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        reportState.addEvent({
-          type: MatchEventType.StartScoring,
-          position: activePosition,
-        });
-        reportState.addEvent({
-          type: MatchEventType.StopScoring,
-          position: activePosition,
-          quantity: accuracy,
-        });
-      } else if (!isTeleop && count > 0) {
-        // In Auto: record fuel count
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        reportState.addEvent({
-          type: MatchEventType.StartScoring,
-          position: activePosition,
-        });
-        reportState.addEvent({
-          type: MatchEventType.StopScoring,
-          position: activePosition,
-          quantity: count,
-        });
-      }
+    if (activePosition !== null && accuracy > 0) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      reportState.addEvent({
+        type: MatchEventType.StartScoring,
+        position: activePosition,
+      });
+      reportState.addEvent({
+        type: MatchEventType.StopScoring,
+        position: activePosition,
+        quantity: accuracy,
+      });
     }
     setActivePosition(null);
-    setCount(0);
     setAccuracy(0);
   };
 
   const handleCancel = () => {
     setActivePosition(null);
-    setCount(0);
     setAccuracy(0);
   };
-
-  const hasValue = isTeleop ? accuracy > 0 : count > 0;
 
   return (
     <>
@@ -154,8 +140,14 @@ export const ShootingPositionActions = () => {
             style={{
               width: "100%",
               height: "100%",
-              backgroundColor: activePosition === position ? "#3EE679" : "#e0e0e0",
-              opacity: activePosition === position ? 0.8 : 0.3,
+              backgroundColor:
+                activePosition === position || flashedPosition === position
+                  ? "#3EE679"
+                  : "#e0e0e0",
+              opacity:
+                activePosition === position || flashedPosition === position
+                  ? 0.8
+                  : 0.3,
               borderRadius: 7,
               alignItems: "center",
               justifyContent: "center",
@@ -178,63 +170,36 @@ export const ShootingPositionActions = () => {
           onPress={handleCancel}
         >
           <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.title}>
-              {isTeleop ? "Accuracy Rating" : "Fuel Scored"}
-            </Text>
+            <Text style={styles.title}>Accuracy Rating</Text>
 
-            {isTeleop ? (
-              <View style={styles.accuracyRow}>
-                {ACCURACY_RATINGS.map((rating) => (
-                  <TouchableOpacity
-                    key={rating}
+            <View style={styles.accuracyRow}>
+              {ACCURACY_RATINGS.map((rating) => (
+                <TouchableOpacity
+                  key={rating}
+                  style={[
+                    styles.accuracyButton,
+                    accuracy === rating && styles.accuracyButtonSelected,
+                  ]}
+                  onPress={() => handleAccuracySelect(rating)}
+                >
+                  <Text
                     style={[
-                      styles.accuracyButton,
-                      accuracy === rating && styles.accuracyButtonSelected,
+                      styles.accuracyButtonText,
+                      accuracy === rating && styles.accuracyButtonTextSelected,
                     ]}
-                    onPress={() => handleAccuracySelect(rating)}
                   >
-                    <Text
-                      style={[
-                        styles.accuracyButtonText,
-                        accuracy === rating && styles.accuracyButtonTextSelected,
-                      ]}
-                    >
-                      {rating}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : (
-              <View style={styles.counterRow}>
-                <TouchableOpacity
-                  style={[styles.counterButton, count === 0 && styles.counterButtonDisabled]}
-                  onPress={handleDecrement}
-                  disabled={count === 0}
-                >
-                  <Text style={styles.counterButtonText}>−</Text>
+                    {rating}
+                  </Text>
                 </TouchableOpacity>
-
-                <Text style={styles.countText}>{count}</Text>
-
-                <TouchableOpacity
-                  style={styles.counterButton}
-                  onPress={handleIncrement}
-                >
-                  <Text style={styles.counterButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+              ))}
+            </View>
 
             <TouchableOpacity
-              style={[styles.confirmButton, !hasValue && styles.confirmButtonDisabled]}
-              onPress={hasValue ? handleConfirm : handleCancel}
+              style={[styles.confirmButton, accuracy === 0 && styles.confirmButtonDisabled]}
+              onPress={accuracy > 0 ? handleConfirm : handleCancel}
             >
               <Text style={styles.confirmButtonText}>
-                {hasValue
-                  ? isTeleop
-                    ? `Confirm (${accuracy}/5)`
-                    : `Confirm (${count})`
-                  : "Cancel"}
+                {accuracy > 0 ? `Confirm (${accuracy}/5)` : "Cancel"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -263,34 +228,6 @@ const styles = StyleSheet.create({
     color: colors.onBackground.default,
     fontFamily: "Heebo_500Medium",
     fontSize: 18,
-  },
-  counterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 24,
-  },
-  counterButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.secondaryContainer.default,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  counterButtonDisabled: {
-    opacity: 0.3,
-  },
-  counterButtonText: {
-    color: colors.onBackground.default,
-    fontSize: 28,
-    fontWeight: "600",
-  },
-  countText: {
-    color: colors.onBackground.default,
-    fontFamily: "Heebo_500Medium",
-    fontSize: 48,
-    minWidth: 60,
-    textAlign: "center",
   },
   accuracyRow: {
     flexDirection: "row",
