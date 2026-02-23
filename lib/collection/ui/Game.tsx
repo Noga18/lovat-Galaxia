@@ -147,6 +147,7 @@ export function Game() {
       field: (
         <>
           <ShootingPositionActions />
+          <ScoreFuelInHubAction />
           <DepotIntakeAction />
           <ClimbAction phase={GamePhase.Auto} />
           <OutpostAction setOverlay={(value) => setOverlay(value)} />
@@ -171,7 +172,6 @@ export function Game() {
       field: (
         <>
           <ShootingPositionActions />
-          <ScoreFuelInHubAction />
           <OutpostAction setOverlay={(value) => setOverlay(value)} />
           <TeleopFeedAction />
         </>
@@ -182,7 +182,6 @@ export function Game() {
       field: (
         <>
           <ShootingPositionActions />
-          <ScoreFuelInHubAction />
           <OutpostAction setOverlay={(value) => setOverlay(value)} />
           <TeleopFeedAction />
           <ClimbAction phase={GamePhase.Endgame} />
