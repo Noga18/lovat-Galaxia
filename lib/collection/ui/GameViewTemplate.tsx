@@ -196,7 +196,7 @@ export const GameViewTemplate = (props: {
                     fontWeight: "600",
                   }}
                 >
-                  ירי בתנועה
+                  Shoot Moving
                 </Text>
               </TouchableOpacity>
 
