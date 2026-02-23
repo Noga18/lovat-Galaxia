@@ -37,7 +37,7 @@ const initialState = {
   intakeType: IntakeType.Neither,
   feederType: [] as FeederType[],
   beached: Beached.Neither,
-  defenseEffectiveness: DefenseEffectiveness.Average,
+  defenseEffectiveness: DefenseEffectiveness.DidNotDefend,
   scoresWhileMoving: ScoresWhileMoving.No,
   climbResult: EndgameClimb.NotAttempted,
   driverAbility: DriverAbility.Average,
