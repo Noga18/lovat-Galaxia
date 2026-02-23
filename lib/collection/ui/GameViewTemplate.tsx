@@ -1,4 +1,10 @@
-import { Pressable, View, TouchableOpacity } from "react-native";
+import {
+  Pressable,
+  View,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+} from "react-native";
 import { colors } from "../../colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -18,10 +24,13 @@ import { GameTimer } from "./GameTimer";
 import { StatusBar } from "expo-status-bar";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
-import React from "react";
+import React, { useState } from "react";
 import { Icon } from "../../components/Icon";
 import { MatchEventType } from "../MatchEventType";
 import { MatchEventPosition } from "../MatchEventPosition";
+import { GamePhase } from "../ReportState";
+
+const ACCURACY_RATINGS = [1, 2, 3, 4, 5];
 
 export const GameViewTemplate = (props: {
   field: React.ReactNode;
@@ -35,6 +44,49 @@ export const GameViewTemplate = (props: {
 }) => {
   const reportState = useReportStateStore();
   const { gamePhaseMessage, field, startEnabled } = props;
+  const isTeleop =
+    reportState.gamePhase === GamePhase.Teleop ||
+    reportState.gamePhase === GamePhase.Endgame;
+
+  const [showMovingModal, setShowMovingModal] = useState(false);
+  const [movingAccuracy, setMovingAccuracy] = useState(0);
+
+  const handleShootWhileMoving = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (isTeleop) {
+      setShowMovingModal(true);
+      setMovingAccuracy(0);
+    } else {
+      // In Auto: just record the event
+      reportState.addEvent({
+        type: MatchEventType.StartScoring,
+        position: MatchEventPosition.NeutralZone,
+      });
+    }
+  };
+
+  const handleMovingConfirm = () => {
+    if (movingAccuracy > 0) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      reportState.addEvent({
+        type: MatchEventType.StartScoring,
+        position: MatchEventPosition.NeutralZone,
+      });
+      reportState.addEvent({
+        type: MatchEventType.StopScoring,
+        position: MatchEventPosition.NeutralZone,
+        quantity: movingAccuracy,
+      });
+    }
+    setShowMovingModal(false);
+    setMovingAccuracy(0);
+  };
+
+  const handleMovingCancel = () => {
+    setShowMovingModal(false);
+    setMovingAccuracy(0);
+  };
+
   if (!reportState.meta) return null;
 
   return (
@@ -125,33 +177,57 @@ export const GameViewTemplate = (props: {
           )}
 
           {reportState?.startTimestamp && (
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger>
-                <IconButton
-                  label="End match"
-                  icon="stop"
-                  color={colors.onBackground.default}
-                  size={30}
-                />
-              </DropdownMenu.Trigger>
-
-              <DropdownMenu.Content
-                loop={false}
-                side="bottom"
-                align="end"
-                alignOffset={0}
-                avoidCollisions={true}
-                collisionPadding={0}
-                sideOffset={0}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: colors.victoryPurple.default,
+                  borderRadius: 8,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                }}
+                activeOpacity={0.7}
+                onPress={handleShootWhileMoving}
               >
-                <DropdownMenu.Item key="end" onSelect={props.onEnd}>
-                  <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
-                  <DropdownMenu.ItemTitle>Restart match</DropdownMenu.ItemTitle>
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+                <Text
+                  style={{
+                    color: "#1f1f1f",
+                    fontFamily: "Heebo_500Medium",
+                    fontSize: 12,
+                    fontWeight: "600",
+                  }}
+                >
+                  ירי בתנועה
+                </Text>
+              </TouchableOpacity>
+
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <IconButton
+                    label="End match"
+                    icon="stop"
+                    color={colors.onBackground.default}
+                    size={30}
+                  />
+                </DropdownMenu.Trigger>
+
+                <DropdownMenu.Content
+                  loop={false}
+                  side="bottom"
+                  align="end"
+                  alignOffset={0}
+                  avoidCollisions={true}
+                  collisionPadding={0}
+                  sideOffset={0}
+                >
+                  <DropdownMenu.Item key="end" onSelect={props.onEnd}>
+                    <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
+                    <DropdownMenu.ItemTitle>Restart match</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            </View>
           )}
         </SafeAreaView>
       </View>
@@ -178,9 +254,133 @@ export const GameViewTemplate = (props: {
           </View>
         </View>
       </SafeAreaView>
+
+      <Modal
+        visible={showMovingModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleMovingCancel}
+      >
+        <TouchableOpacity
+          style={movingStyles.modalBackdrop}
+          activeOpacity={1}
+          onPress={handleMovingCancel}
+        >
+          <View
+            style={movingStyles.modalContent}
+            onStartShouldSetResponder={() => true}
+          >
+            <Text style={movingStyles.title}>Accuracy Rating</Text>
+
+            <View style={movingStyles.accuracyRow}>
+              {ACCURACY_RATINGS.map((rating) => (
+                <TouchableOpacity
+                  key={rating}
+                  style={[
+                    movingStyles.accuracyButton,
+                    movingAccuracy === rating &&
+                      movingStyles.accuracyButtonSelected,
+                  ]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setMovingAccuracy(rating);
+                  }}
+                >
+                  <Text
+                    style={[
+                      movingStyles.accuracyButtonText,
+                      movingAccuracy === rating &&
+                        movingStyles.accuracyButtonTextSelected,
+                    ]}
+                  >
+                    {rating}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                movingStyles.confirmButton,
+                movingAccuracy === 0 && movingStyles.confirmButtonDisabled,
+              ]}
+              onPress={movingAccuracy > 0 ? handleMovingConfirm : handleMovingCancel}
+            >
+              <Text style={movingStyles.confirmButtonText}>
+                {movingAccuracy > 0
+                  ? `Confirm (${movingAccuracy}/5)`
+                  : "Cancel"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 };
+
+const movingStyles = StyleSheet.create({
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: colors.background.default,
+    borderRadius: 16,
+    padding: 24,
+    width: 280,
+    alignItems: "center",
+    gap: 20,
+  },
+  title: {
+    color: colors.onBackground.default,
+    fontFamily: "Heebo_500Medium",
+    fontSize: 18,
+  },
+  accuracyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  accuracyButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.secondaryContainer.default,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  accuracyButtonSelected: {
+    backgroundColor: "#3EE679",
+  },
+  accuracyButtonText: {
+    color: colors.onBackground.default,
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  accuracyButtonTextSelected: {
+    color: "#1f1f1f",
+  },
+  confirmButton: {
+    backgroundColor: "#3EE679",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    width: "100%",
+    alignItems: "center",
+  },
+  confirmButtonDisabled: {
+    backgroundColor: colors.gray.default,
+  },
+  confirmButtonText: {
+    color: "#1f1f1f",
+    fontFamily: "Heebo_500Medium",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
 
 function GameViewOverlay({
   overlay,
