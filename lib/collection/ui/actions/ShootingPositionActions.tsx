@@ -146,7 +146,7 @@ export const ShootingPositionActions = () => {
           onPress={handleCancel}
         >
           <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.title}>Balls Scored</Text>
+            <Text style={styles.title}>Fuel Scored</Text>
 
             <View style={styles.counterRow}>
               <TouchableOpacity
