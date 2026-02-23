@@ -22,6 +22,7 @@ import React from "react";
 
 export default function Submit() {
   const reportState = useReportStateStore();
+  const navigation = useNavigation();
   const [scoutReport, setScoutReport] = useState<ScoutReport | null>(null);
 
   const [uploaded, setUploaded] = useState(false);
@@ -31,6 +32,16 @@ export default function Submit() {
   const [uploadState, setUploadState] = useState(UploadState.None);
 
   const upsertMatchToHistory = useHistoryStore((state) => state.upsertMatch);
+
+  useEffect(() => {
+    if (!reportState.meta) {
+      navigation.dispatch(
+        CommonActions.reset({
+          routes: [{ key: "index", name: "index" }],
+        }),
+      );
+    }
+  }, [reportState.meta]);
 
   useEffect(() => {
     if (uploading) {
@@ -73,10 +84,14 @@ export default function Submit() {
     }
   }, [reportState]);
 
+  if (!reportState.meta) {
+    return null;
+  }
+
   return (
     <>
       <NavBar
-        title={`${reportState.meta!.teamNumber} in ${localizeMatchIdentity(reportState.meta!.matchIdentity, MatchIdentityLocalizationFormat.Short)}`}
+        title={`${reportState.meta.teamNumber} in ${localizeMatchIdentity(reportState.meta.matchIdentity, MatchIdentityLocalizationFormat.Short)}`}
       />
       <SafeAreaView
         edges={["bottom", "left", "right"]}
