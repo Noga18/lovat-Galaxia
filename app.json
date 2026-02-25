@@ -10,7 +10,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#1f1f1f"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "icon": "./assets/icon.png",
       "supportsTablet": true,
@@ -37,13 +39,13 @@
     },
     "extra": {
       "eas": {
-        "projectId": "a03e1f3b-bb81-4bb1-9961-2ec813f82b94"
+        "projectId": "83168408-6a2d-4fa9-b6cc-98f3f9be7104"
       },
       "router": {
         "origin": false
       }
     },
-    "owner": "highlander-robotics",
+    "owner": "evaveksler",
     "plugins": [
       "expo-router",
       [
