@@ -23,6 +23,7 @@ import { Beached, beachedDescriptions } from "../../lib/collection/Beached";
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
 import { scoresWhileMovingDescriptions } from "../../lib/collection/ScoresWhileMoving";
 import { speedDescriptions } from "../../lib/collection/Speed";
+import { MatchEventPosition } from "../../lib/collection/MatchEventPosition";
 import {
   EndgameClimb,
   endgameClimbDescriptions,
@@ -36,6 +37,7 @@ import React from "react";
 import { Checkbox } from "../../lib/components/Checkbox";
 import { RobotRole } from "../../lib/collection/RobotRole";
 import { MatchEventType } from "../../lib/collection/MatchEventType";
+import { MatchEvent } from "../../lib/collection/MatchEvent";
 
 export default function PostMatch() {
   const reportState = useReportStateStore();
@@ -271,6 +273,7 @@ export default function PostMatch() {
             selected={reportState.scoresWhileMoving}
             onChange={reportState.setScoresWhileMoving}
           />
+          <ShootingPositionsDisplay events={reportState.events} />
           <PostMatchSelector
             title="Shooting Speed"
             items={speedDescriptions.map((desc) => ({
@@ -460,3 +463,62 @@ function PostMatchSelector<TItem, TOutput = TItem>(
     </View>
   );
 }
+
+const shootingPositionNames: Record<number, string> = {
+  [MatchEventPosition.LeftTrench]: "Left Front",
+  [MatchEventPosition.Hub]: "Center Front",
+  [MatchEventPosition.RightTrench]: "Right Front",
+  [MatchEventPosition.LeftBump]: "Left Back",
+  [MatchEventPosition.CenterBack]: "Center Back",
+  [MatchEventPosition.RightBump]: "Right Back",
+};
+
+const shootingPositionOrder = [
+  MatchEventPosition.LeftTrench,
+  MatchEventPosition.Hub,
+  MatchEventPosition.RightTrench,
+  MatchEventPosition.LeftBump,
+  MatchEventPosition.CenterBack,
+  MatchEventPosition.RightBump,
+];
+
+const ShootingPositionsDisplay = ({ events }: { events: MatchEvent[] }) => {
+  const usedPositions = new Set(
+    events
+      .filter((e) => e.type === MatchEventType.StartScoring)
+      .map((e) => e.position)
+  );
+
+  return (
+    <View style={{ gap: 7 }}>
+      <LabelSmall>Shooting Positions</LabelSmall>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
+        {shootingPositionOrder.map((pos) => {
+          const active = usedPositions.has(pos);
+          return (
+            <View
+              key={pos}
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                borderRadius: 10,
+                backgroundColor: active ? "#3EE679" : "#2a2a2a",
+                opacity: active ? 1 : 0.5,
+              }}
+            >
+              <BodyMedium color={active ? "#1f1f1f" : "#aaa"}>
+                {shootingPositionNames[pos]}
+              </BodyMedium>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};

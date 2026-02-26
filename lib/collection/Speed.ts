@@ -16,7 +16,7 @@ export const speedDescriptions = [
     speed: Speed.Slow,
     localizedDescription: "1 - Slow",
     localizedLongDescription:
-      "The robot shoots slowly with long pauses between shots.",
+      "The robot shoots slowly.",
     num: 1,
   },
   {
@@ -30,7 +30,7 @@ export const speedDescriptions = [
     speed: Speed.Fast,
     localizedDescription: "3 - Fast",
     localizedLongDescription:
-      "The robot shoots quickly with minimal pauses.",
+      "The robot shoots quickly.",
     num: 3,
   },
 ] as const satisfies SpeedDescription[];
