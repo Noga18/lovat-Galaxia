@@ -130,42 +130,15 @@ export default function PostMatch() {
             selected={reportState.defenseEffectiveness}
             onChange={reportState.setDefenseEffectiveness}
           />
-          <PostMatchSelector<string, IntakeType>
-            title="Intake Type"
-            items={intakeTypeDescriptions
-              .filter(
-                (desc) =>
-                  desc.intakeType === IntakeType.Ground ||
-                  desc.intakeType === IntakeType.Outpost,
-              )
-              .map((desc) => ({
-                label: desc.localizedDescription,
-                description: desc.localizedLongDescription,
-                value:
-                  desc.intakeType === IntakeType.Ground ? "ground" : "outpost",
-                disabled:
-                  desc.intakeType === IntakeType.Outpost &&
-                  hasOutpostIntakeEvent,
-              }))}
-            selected={
-              reportState.intakeType === IntakeType.Both
-                ? ["ground", "outpost"]
-                : reportState.intakeType === IntakeType.Ground
-                  ? ["ground"]
-                  : reportState.intakeType === IntakeType.Outpost
-                    ? ["outpost"]
-                    : []
-            }
-            onChange={reportState.setIntakeType}
-            multiSelect
-            mapSelection={(selected) => {
-              const hasGround = selected.includes("ground");
-              const hasOutpost = selected.includes("outpost");
-              if (hasGround && hasOutpost) return IntakeType.Both;
-              if (hasGround) return IntakeType.Ground;
-              if (hasOutpost) return IntakeType.Outpost;
-              return IntakeType.Neither;
-            }}
+          <PostMatchSelector
+            title="Shooting Speed"
+            items={speedDescriptions.map((desc) => ({
+              label: desc.localizedDescription,
+              description: desc.localizedLongDescription,
+              value: desc.speed,
+            }))}
+            selected={reportState.speed}
+            onChange={reportState.setSpeed}
           />
           <PostMatchSelector<string, FieldTraversal>
             title="Field Traversal"
@@ -275,16 +248,6 @@ export default function PostMatch() {
             onChange={reportState.setScoresWhileMoving}
           />
           <ShootingPositionsDisplay events={reportState.events} />
-          <PostMatchSelector
-            title="Shooting Speed"
-            items={speedDescriptions.map((desc) => ({
-              label: desc.localizedDescription,
-              description: desc.localizedLongDescription,
-              value: desc.speed,
-            }))}
-            selected={reportState.speed}
-            onChange={reportState.setSpeed}
-          />
           <PostMatchSelector
             title="Intake Speed"
             items={intakeSpeedDescriptions.map((desc) => ({
