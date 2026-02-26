@@ -6,17 +6,10 @@ export const fieldHeight = 978;
 
 export const FieldImage = () => {
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          transform: [{ rotate: "180deg" }],
-        },
-      ]}
-    >
+    <View style={styles.container}>
       <Image
         source={require("../../assets/field-2026.png")}
-        style={styles.image}
+        style={[styles.image, { transform: [{ rotate: "180deg" }] }]}
         resizeMode="contain"
       />
     </View>
