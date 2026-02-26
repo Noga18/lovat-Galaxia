@@ -55,9 +55,9 @@ export const GameViewTemplate = (props: {
 
   const shootingOnLeft = (() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
-      return allianceColor !== AllianceColor.Blue;
-    } else {
       return allianceColor === AllianceColor.Blue;
+    } else {
+      return allianceColor !== AllianceColor.Blue;
     }
   })();
 
