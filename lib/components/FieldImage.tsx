@@ -11,20 +11,25 @@ export const fieldHeight = 978;
 export const FieldImage = () => {
   const fieldOrientation = useFieldOrientationStore((state) => state.value);
 
-  const isFlipped = fieldOrientation === FieldOrientation.Sinister;
-
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          transform: [
+            {
+              rotate:
+                fieldOrientation === FieldOrientation.Auspicious
+                  ? "180deg"
+                  : "0deg",
+            },
+          ],
+        },
+      ]}
+    >
       <Image
         source={require("../../assets/field-2026.png")}
-        style={[
-          styles.image,
-          {
-            transform: isFlipped
-              ? []
-              : [{ scaleX: -1 }, { scaleY: -1 }],
-          },
-        ]}
+        style={styles.image}
         resizeMode="contain"
       />
     </View>
