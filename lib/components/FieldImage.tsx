@@ -9,7 +9,7 @@ export const FieldImage = () => {
     <View style={styles.container}>
       <Image
         source={require("../../assets/field-2026.png")}
-        style={[styles.image, { transform: [{ rotate: "180deg" }] }]}
+        style={styles.image}
         resizeMode="contain"
       />
     </View>
