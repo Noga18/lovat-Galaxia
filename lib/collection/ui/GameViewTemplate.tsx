@@ -22,7 +22,6 @@ import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
 import { StatusBar } from "expo-status-bar";
-import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React, { useState } from "react";
 import { Icon } from "../../components/Icon";
@@ -191,34 +190,35 @@ export const GameViewTemplate = (props: {
           )}
 
           {reportState?.startTimestamp && (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                  <IconButton
-                    label="End match"
-                    icon="stop"
-                    color={colors.onBackground.default}
-                    size={30}
-                  />
-                </DropdownMenu.Trigger>
-
-                <DropdownMenu.Content
-                  loop={false}
-                  side="bottom"
-                  align="end"
-                  alignOffset={0}
-                  avoidCollisions={true}
-                  collisionPadding={0}
-                  sideOffset={0}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <TouchableOpacity
+                onPress={props.onRestart}
+                style={{
+                  padding: 6,
+                }}
+              >
+                <Icon name="refresh" color={colors.onBackground.default} size={24} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={props.onEnd}
+                style={{
+                  backgroundColor: colors.danger.default,
+                  borderRadius: 8,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#ffffff",
+                    fontFamily: "Heebo_500Medium",
+                    fontSize: 12,
+                    fontWeight: "600",
+                  }}
                 >
-                  <DropdownMenu.Item key="end" onSelect={props.onEnd}>
-                    <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
-                    <DropdownMenu.ItemTitle>Restart match</DropdownMenu.ItemTitle>
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
+                  End Match
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
         </SafeAreaView>
