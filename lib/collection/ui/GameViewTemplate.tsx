@@ -22,16 +22,13 @@ import { IconButton } from "../../components/IconButton";
 import * as Haptics from "expo-haptics";
 import { GameTimer } from "./GameTimer";
 import { StatusBar } from "expo-status-bar";
+import * as DropdownMenu from "zeego/dropdown-menu";
 import { useReportStateStore } from "../reportStateStore";
 import React, { useState } from "react";
 import { Icon } from "../../components/Icon";
 import { MatchEventType } from "../MatchEventType";
 import { MatchEventPosition } from "../MatchEventPosition";
 import { GamePhase } from "../ReportState";
-import {
-  FieldOrientation,
-  useFieldOrientationStore,
-} from "../../storage/userStores";
 
 const ACCURACY_RATINGS = [1, 2, 3, 4, 5];
 
@@ -46,20 +43,10 @@ export const GameViewTemplate = (props: {
   onRestart: () => void;
 }) => {
   const reportState = useReportStateStore();
-  const fieldOrientation = useFieldOrientationStore((state) => state.value);
   const { gamePhaseMessage, field, startEnabled } = props;
   const isTeleop =
     reportState.gamePhase === GamePhase.Teleop ||
     reportState.gamePhase === GamePhase.Endgame;
-  const allianceColor = reportState.meta?.allianceColor;
-
-  const shootingOnLeft = (() => {
-    if (fieldOrientation === FieldOrientation.Auspicious) {
-      return allianceColor !== AllianceColor.Blue;
-    } else {
-      return allianceColor === AllianceColor.Blue;
-    }
-  })();
 
   const [showMovingModal, setShowMovingModal] = useState(false);
   const [movingAccuracy, setMovingAccuracy] = useState(0);
@@ -190,60 +177,12 @@ export const GameViewTemplate = (props: {
           )}
 
           {reportState?.startTimestamp && (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <TouchableOpacity
-                onPress={props.onRestart}
-                style={{
-                  padding: 6,
-                }}
-              >
-                <Icon name="refresh" color={colors.onBackground.default} size={24} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={props.onEnd}
-                style={{
-                  backgroundColor: colors.danger.default,
-                  borderRadius: 8,
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "#ffffff",
-                    fontFamily: "Heebo_500Medium",
-                    fontSize: 12,
-                    fontWeight: "600",
-                  }}
-                >
-                  End Match
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </SafeAreaView>
-      </View>
-      <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1 }}>
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "column",
-          }}
-        >
-          {reportState?.startTimestamp && (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: shootingOnLeft ? "flex-start" : "flex-end",
-                paddingHorizontal: 8,
-                paddingBottom: 4,
-              }}
-            >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <TouchableOpacity
                 style={{
                   backgroundColor: colors.victoryPurple.default,
                   borderRadius: 8,
-                  paddingHorizontal: 12,
+                  paddingHorizontal: 10,
                   paddingVertical: 6,
                 }}
                 activeOpacity={0.7}
@@ -260,27 +199,58 @@ export const GameViewTemplate = (props: {
                   Shoot Moving
                 </Text>
               </TouchableOpacity>
+
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <IconButton
+                    label="End match"
+                    icon="stop"
+                    color={colors.onBackground.default}
+                    size={30}
+                  />
+                </DropdownMenu.Trigger>
+
+                <DropdownMenu.Content
+                  loop={false}
+                  side="bottom"
+                  align="end"
+                  alignOffset={0}
+                  avoidCollisions={true}
+                  collisionPadding={0}
+                  sideOffset={0}
+                >
+                  <DropdownMenu.Item key="end" onSelect={props.onEnd}>
+                    <DropdownMenu.ItemTitle>End match</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item key="restart" onSelect={props.onRestart}>
+                    <DropdownMenu.ItemTitle>Restart match</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
             </View>
           )}
+        </SafeAreaView>
+      </View>
+      <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1 }}>
+        <View
+          style={{
+            height: "100%",
+            width: "100%",
+            flexDirection: "row",
+            alignItems: "stretch",
+            justifyContent: "center",
+          }}
+        >
           <View
             style={{
-              flex: 1,
-              flexDirection: "row",
-              alignItems: "stretch",
-              justifyContent: "center",
+              position: "relative",
+              aspectRatio: fieldWidth / fieldHeight,
+              maxWidth: "100%",
+              maxHeight: "100%",
             }}
           >
-            <View
-              style={{
-                position: "relative",
-                aspectRatio: fieldWidth / fieldHeight,
-                maxWidth: "100%",
-                maxHeight: "100%",
-              }}
-            >
-              <FieldImage />
-              {field}
-            </View>
+            <FieldImage />
+            {field}
           </View>
         </View>
       </SafeAreaView>
