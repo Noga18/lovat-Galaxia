@@ -140,18 +140,17 @@ export const DraggableContainer = ({
 
   const top = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
-      // return givenTop;
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenTop
-          : givenButtom
-        : givenButtom;
-    } else {
       return respectAlliance
         ? allianceColor === AllianceColor.Blue
           ? givenButtom
           : givenTop
         : givenTop;
+    } else {
+      return respectAlliance
+        ? allianceColor === AllianceColor.Blue
+          ? givenTop
+          : givenButtom
+        : givenButtom;
     }
   }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
 
@@ -159,15 +158,15 @@ export const DraggableContainer = ({
     if (fieldOrientation === FieldOrientation.Auspicious) {
       return respectAlliance
         ? allianceColor === AllianceColor.Blue
-          ? givenButtom
-          : givenTop
-        : givenTop;
-    } else {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
           ? givenTop
           : givenButtom
         : givenButtom;
+    } else {
+      return respectAlliance
+        ? allianceColor === AllianceColor.Blue
+          ? givenButtom
+          : givenTop
+        : givenTop;
     }
   }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
 
@@ -175,15 +174,15 @@ export const DraggableContainer = ({
     if (fieldOrientation === FieldOrientation.Auspicious) {
       return respectAlliance
         ? allianceColor === AllianceColor.Blue
-          ? givenLeft
-          : givenRight
-        : givenLeft;
-    } else {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
           ? givenRight
           : givenLeft
         : givenRight;
+    } else {
+      return respectAlliance
+        ? allianceColor === AllianceColor.Blue
+          ? givenLeft
+          : givenRight
+        : givenLeft;
     }
   }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
 
@@ -191,15 +190,15 @@ export const DraggableContainer = ({
     if (fieldOrientation === FieldOrientation.Auspicious) {
       return respectAlliance
         ? allianceColor === AllianceColor.Blue
-          ? givenRight
-          : givenLeft
-        : givenRight;
-    } else {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
           ? givenLeft
           : givenRight
         : givenLeft;
+    } else {
+      return respectAlliance
+        ? allianceColor === AllianceColor.Blue
+          ? givenRight
+          : givenLeft
+        : givenRight;
     }
   }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
   return (
