@@ -23,6 +23,7 @@ import { Beached, beachedDescriptions } from "../../lib/collection/Beached";
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
 import { scoresWhileMovingDescriptions } from "../../lib/collection/ScoresWhileMoving";
 import { speedDescriptions } from "../../lib/collection/Speed";
+import { intakeSpeedDescriptions } from "../../lib/collection/IntakeSpeed";
 import { MatchEventPosition } from "../../lib/collection/MatchEventPosition";
 import {
   EndgameClimb,
@@ -283,6 +284,16 @@ export default function PostMatch() {
             }))}
             selected={reportState.speed}
             onChange={reportState.setSpeed}
+          />
+          <PostMatchSelector
+            title="Intake Speed"
+            items={intakeSpeedDescriptions.map((desc) => ({
+              label: desc.localizedDescription,
+              description: desc.localizedLongDescription,
+              value: desc.intakeSpeed,
+            }))}
+            selected={reportState.intakeSpeed}
+            onChange={reportState.setIntakeSpeed}
           />
 
           <View style={{ marginVertical: 18 }}>

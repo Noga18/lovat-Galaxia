@@ -19,6 +19,7 @@ import {
 } from "./DefenseEffectiveness";
 import { ScoresWhileMoving } from "./ScoresWhileMoving";
 import { Speed } from "./Speed";
+import { IntakeSpeed } from "./IntakeSpeed";
 import { EndgameClimb } from "./EndgameClimb";
 import { MatchEventType } from "./MatchEventType";
 import {
@@ -41,6 +42,7 @@ const initialState = {
   defenseEffectiveness: DefenseEffectiveness.DidNotDefend,
   scoresWhileMoving: ScoresWhileMoving.No,
   speed: Speed.Medium,
+  intakeSpeed: IntakeSpeed.Medium,
   climbResult: EndgameClimb.NotAttempted,
   driverAbility: DriverAbility.Average,
   notes: "",
@@ -78,6 +80,7 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
   setDefenseEffectiveness: (value) => set({ defenseEffectiveness: value }),
   setScoresWhileMoving: (value) => set({ scoresWhileMoving: value }),
   setSpeed: (value) => set({ speed: value }),
+  setIntakeSpeed: (value) => set({ intakeSpeed: value }),
   setClimbResult: (value) => set({ climbResult: value }),
   setDriverAbility: (value) => set({ driverAbility: value }),
   setNotes: (value) => set({ notes: value }),
