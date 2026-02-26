@@ -1,15 +1,30 @@
 import React from "react";
 import { Image, View, StyleSheet } from "react-native";
+import {
+  FieldOrientation,
+  useFieldOrientationStore,
+} from "../storage/userStores";
 
 export const fieldWidth = 1964;
 export const fieldHeight = 978;
 
 export const FieldImage = () => {
+  const fieldOrientation = useFieldOrientationStore((state) => state.value);
+
+  const isFlipped = fieldOrientation === FieldOrientation.Sinister;
+
   return (
     <View style={styles.container}>
       <Image
         source={require("../../assets/field-2026.png")}
-        style={styles.image}
+        style={[
+          styles.image,
+          {
+            transform: isFlipped
+              ? []
+              : [{ scaleX: -1 }, { scaleY: -1 }],
+          },
+        ]}
         resizeMode="contain"
       />
     </View>
