@@ -84,6 +84,9 @@ export const ShootingPositionActions = () => {
   const [activePosition, setActivePosition] = useState<MatchEventPosition | null>(null);
   const [accuracy, setAccuracy] = useState(0);
 
+  // Teleop: last selected position stays highlighted
+  const [selectedTeleopPosition, setSelectedTeleopPosition] = useState<MatchEventPosition | null>(null);
+
   // Auto: brief flash to indicate position was marked
   const [flashedPosition, setFlashedPosition] = useState<MatchEventPosition | null>(null);
 
@@ -91,11 +94,10 @@ export const ShootingPositionActions = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     if (isTeleop) {
-      // In Teleop: open accuracy rating modal
+      setSelectedTeleopPosition(position);
       setActivePosition(position);
       setAccuracy(0);
     } else {
-      // In Auto: just mark the shooting position, fuel count comes from Hub
       reportState.addEvent({
         type: MatchEventType.StartScoring,
         position: position,
@@ -132,6 +134,13 @@ export const ShootingPositionActions = () => {
     setAccuracy(0);
   };
 
+  const isHighlighted = (position: MatchEventPosition) => {
+    if (activePosition === position) return true;
+    if (flashedPosition === position) return true;
+    if (isTeleop && selectedTeleopPosition === position && activePosition === null) return true;
+    return false;
+  };
+
   return (
     <>
       {shootingPositions.map(({ position, edgeInsets }) => (
@@ -140,14 +149,12 @@ export const ShootingPositionActions = () => {
             style={{
               width: "100%",
               height: "100%",
-              backgroundColor:
-                activePosition === position || flashedPosition === position
-                  ? "#3EE679"
-                  : "#e0e0e0",
-              opacity:
-                activePosition === position || flashedPosition === position
-                  ? 0.8
-                  : 0.3,
+              backgroundColor: isHighlighted(position)
+                ? "#3EE679"
+                : "#e0e0e0",
+              opacity: isHighlighted(position)
+                ? 0.8
+                : 0.3,
               borderRadius: 7,
               alignItems: "center",
               justifyContent: "center",
