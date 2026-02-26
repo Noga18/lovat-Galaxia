@@ -13,6 +13,7 @@ import { FeederType } from "./FeederType";
 import { Beached } from "./Beached";
 import { DefenseEffectiveness } from "./DefenseEffectiveness";
 import { ScoresWhileMoving } from "./ScoresWhileMoving";
+import { Speed } from "./Speed";
 import { EndgameClimb } from "./EndgameClimb";
 
 export enum GamePhase {
@@ -43,6 +44,7 @@ export type ReportState = {
   beached: Beached;
   defenseEffectiveness: DefenseEffectiveness;
   scoresWhileMoving: ScoresWhileMoving;
+  speed: Speed;
   climbResult: EndgameClimb;
   driverAbility: DriverAbility;
   notes: string;
@@ -64,6 +66,7 @@ export type ReportState = {
   setBeached: (value: Beached) => void;
   setDefenseEffectiveness: (value: DefenseEffectiveness) => void;
   setScoresWhileMoving: (value: ScoresWhileMoving) => void;
+  setSpeed: (value: Speed) => void;
   setClimbResult: (value: EndgameClimb) => void;
   setDriverAbility: (value: DriverAbility) => void;
   setNotes: (value: string) => void;

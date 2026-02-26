@@ -18,6 +18,7 @@ import {
   defenseEffectivenessDescriptions,
 } from "./DefenseEffectiveness";
 import { ScoresWhileMoving } from "./ScoresWhileMoving";
+import { Speed } from "./Speed";
 import { EndgameClimb } from "./EndgameClimb";
 import { MatchEventType } from "./MatchEventType";
 import {
@@ -39,6 +40,7 @@ const initialState = {
   beached: Beached.Neither,
   defenseEffectiveness: DefenseEffectiveness.DidNotDefend,
   scoresWhileMoving: ScoresWhileMoving.No,
+  speed: Speed.Medium,
   climbResult: EndgameClimb.NotAttempted,
   driverAbility: DriverAbility.Average,
   notes: "",
@@ -75,6 +77,7 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
   setBeached: (value) => set({ beached: value }),
   setDefenseEffectiveness: (value) => set({ defenseEffectiveness: value }),
   setScoresWhileMoving: (value) => set({ scoresWhileMoving: value }),
+  setSpeed: (value) => set({ speed: value }),
   setClimbResult: (value) => set({ climbResult: value }),
   setDriverAbility: (value) => set({ driverAbility: value }),
   setNotes: (value) => set({ notes: value }),

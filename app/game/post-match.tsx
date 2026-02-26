@@ -22,6 +22,7 @@ import { feederTypeDescriptions } from "../../lib/collection/FeederType";
 import { Beached, beachedDescriptions } from "../../lib/collection/Beached";
 import { defenseEffectivenessDescriptions } from "../../lib/collection/DefenseEffectiveness";
 import { scoresWhileMovingDescriptions } from "../../lib/collection/ScoresWhileMoving";
+import { speedDescriptions } from "../../lib/collection/Speed";
 import {
   EndgameClimb,
   endgameClimbDescriptions,
@@ -269,6 +270,16 @@ export default function PostMatch() {
             }))}
             selected={reportState.scoresWhileMoving}
             onChange={reportState.setScoresWhileMoving}
+          />
+          <PostMatchSelector
+            title="Shooting Speed"
+            items={speedDescriptions.map((desc) => ({
+              label: desc.localizedDescription,
+              description: desc.localizedLongDescription,
+              value: desc.speed,
+            }))}
+            selected={reportState.speed}
+            onChange={reportState.setSpeed}
           />
 
           <View style={{ marginVertical: 18 }}>
