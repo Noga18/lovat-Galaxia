@@ -29,6 +29,10 @@ import { Icon } from "../../components/Icon";
 import { MatchEventType } from "../MatchEventType";
 import { MatchEventPosition } from "../MatchEventPosition";
 import { GamePhase } from "../ReportState";
+import {
+  FieldOrientation,
+  useFieldOrientationStore,
+} from "../../storage/userStores";
 
 const ACCURACY_RATINGS = [1, 2, 3, 4, 5];
 
@@ -43,10 +47,20 @@ export const GameViewTemplate = (props: {
   onRestart: () => void;
 }) => {
   const reportState = useReportStateStore();
+  const fieldOrientation = useFieldOrientationStore((state) => state.value);
   const { gamePhaseMessage, field, startEnabled } = props;
   const isTeleop =
     reportState.gamePhase === GamePhase.Teleop ||
     reportState.gamePhase === GamePhase.Endgame;
+  const allianceColor = reportState.meta?.allianceColor;
+
+  const shootingOnLeft = (() => {
+    if (fieldOrientation === FieldOrientation.Auspicious) {
+      return allianceColor === AllianceColor.Blue;
+    } else {
+      return allianceColor !== AllianceColor.Blue;
+    }
+  })();
 
   const [showMovingModal, setShowMovingModal] = useState(false);
   const [movingAccuracy, setMovingAccuracy] = useState(0);
@@ -178,28 +192,6 @@ export const GameViewTemplate = (props: {
 
           {reportState?.startTimestamp && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: colors.victoryPurple.default,
-                  borderRadius: 8,
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                }}
-                activeOpacity={0.7}
-                onPress={handleShootWhileMoving}
-              >
-                <Text
-                  style={{
-                    color: "#1f1f1f",
-                    fontFamily: "Heebo_500Medium",
-                    fontSize: 12,
-                    fontWeight: "600",
-                  }}
-                >
-                  Shoot Moving
-                </Text>
-              </TouchableOpacity>
-
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger>
                   <IconButton
@@ -234,23 +226,61 @@ export const GameViewTemplate = (props: {
       <SafeAreaView edges={["bottom", "left", "right"]} style={{ flex: 1 }}>
         <View
           style={{
-            height: "100%",
-            width: "100%",
-            flexDirection: "row",
-            alignItems: "stretch",
-            justifyContent: "center",
+            flex: 1,
+            flexDirection: "column",
           }}
         >
+          {reportState?.startTimestamp && (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: shootingOnLeft ? "flex-start" : "flex-end",
+                paddingHorizontal: 8,
+                paddingBottom: 4,
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  backgroundColor: colors.victoryPurple.default,
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                }}
+                activeOpacity={0.7}
+                onPress={handleShootWhileMoving}
+              >
+                <Text
+                  style={{
+                    color: "#1f1f1f",
+                    fontFamily: "Heebo_500Medium",
+                    fontSize: 12,
+                    fontWeight: "600",
+                  }}
+                >
+                  Shoot Moving
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
           <View
             style={{
-              position: "relative",
-              aspectRatio: fieldWidth / fieldHeight,
-              maxWidth: "100%",
-              maxHeight: "100%",
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "stretch",
+              justifyContent: "center",
             }}
           >
-            <FieldImage />
-            {field}
+            <View
+              style={{
+                position: "relative",
+                aspectRatio: fieldWidth / fieldHeight,
+                maxWidth: "100%",
+                maxHeight: "100%",
+              }}
+            >
+              <FieldImage />
+              {field}
+            </View>
           </View>
         </View>
       </SafeAreaView>
