@@ -10,14 +10,6 @@ packages = ["eas-cli"]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 5001
-externalPort = 3000
-
-[[ports]]
-localPort = 8081
-externalPort = 8081
-
 [workflows]
 runButton = "Project"
 
@@ -39,7 +31,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd /home/runner/workspace && npx expo start --web --port 5000 --host localhost --clear"
+args = "cd /home/runner/workspace && npx expo start --web --port 5000 --host localhost"
 waitForPort = 5000
 
 [deployment]
