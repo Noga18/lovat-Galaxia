@@ -22,67 +22,35 @@ export const FieldElement = (props: {
 
   const top = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenTop
-          : givenButtom
-        : givenButtom;
+      return givenButtom;
     } else {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenButtom
-          : givenTop
-        : givenTop;
+      return givenTop;
     }
-  }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
+  }, [fieldOrientation, givenTop, givenButtom]);
 
   const bottom = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenButtom
-          : givenTop
-        : givenTop;
+      return givenTop;
     } else {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenTop
-          : givenButtom
-        : givenButtom;
+      return givenButtom;
     }
-  }, [respectAlliance, fieldOrientation, givenTop, givenButtom]);
+  }, [fieldOrientation, givenTop, givenButtom]);
 
   const left = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenLeft
-          : givenRight
-        : givenLeft;
+      return givenRight;
     } else {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenRight
-          : givenLeft
-        : givenRight;
+      return givenLeft;
     }
-  }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
+  }, [fieldOrientation, givenLeft, givenRight]);
 
   const right = useMemo(() => {
     if (fieldOrientation === FieldOrientation.Auspicious) {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenRight
-          : givenLeft
-        : givenRight;
+      return givenLeft;
     } else {
-      return respectAlliance
-        ? allianceColor === AllianceColor.Blue
-          ? givenLeft
-          : givenRight
-        : givenLeft;
+      return givenRight;
     }
-  }, [respectAlliance, fieldOrientation, givenLeft, givenRight]);
+  }, [fieldOrientation, givenLeft, givenRight]);
 
   return (
     <View
