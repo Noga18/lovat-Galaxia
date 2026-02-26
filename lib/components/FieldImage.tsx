@@ -11,7 +11,7 @@ export const FieldImage = () => {
     (state) => state.meta?.allianceColor,
   );
 
-  const shouldRotate = allianceColor === AllianceColor.Red;
+  const shouldRotate = allianceColor === AllianceColor.Red || allianceColor === AllianceColor.Blue;
 
   return (
     <View style={styles.container}>
