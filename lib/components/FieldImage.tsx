@@ -1,29 +1,16 @@
 import React from "react";
 import { Image, View, StyleSheet } from "react-native";
-import {
-  FieldOrientation,
-  useFieldOrientationStore,
-} from "../storage/userStores";
 
 export const fieldWidth = 1964;
 export const fieldHeight = 978;
 
 export const FieldImage = () => {
-  const fieldOrientation = useFieldOrientationStore((state) => state.value);
-
   return (
     <View
       style={[
         styles.container,
         {
-          transform: [
-            {
-              rotate:
-                fieldOrientation === FieldOrientation.Auspicious
-                  ? "0deg"
-                  : "180deg",
-            },
-          ],
+          transform: [{ rotate: "180deg" }],
         },
       ]}
     >
