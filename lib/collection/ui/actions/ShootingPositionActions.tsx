@@ -9,12 +9,75 @@ import { figmaDimensionsToFieldInsets } from "../../util";
 import * as Haptics from "expo-haptics";
 import { colors } from "../../../colors";
 
-// 6 shooting positions arranged in a 3x2 rectangle
-const shootingPositions: Array<{
+// Auto paths positions (6 squares in a 2x3 grid - as requested from the Dashboard Manager)
+// This matches the layout from the provided dashboard link: 2 rows, 3 columns
+const autoPositions: Array<{
   position: MatchEventPosition;
   edgeInsets: [number, number, number, number];
 }> = [
-  // Front row (3 positions, closer to alliance wall)
+  // Top row (Middle field area)
+  {
+    position: MatchEventPosition.LeftTrench,
+    edgeInsets: figmaDimensionsToFieldInsets({
+      x: 15,
+      y: 35,
+      width: 130,
+      height: 90,
+    }),
+  },
+  {
+    position: MatchEventPosition.Hub,
+    edgeInsets: figmaDimensionsToFieldInsets({
+      x: 160,
+      y: 35,
+      width: 130,
+      height: 90,
+    }),
+  },
+  {
+    position: MatchEventPosition.RightTrench,
+    edgeInsets: figmaDimensionsToFieldInsets({
+      x: 305,
+      y: 35,
+      width: 130,
+      height: 90,
+    }),
+  },
+  // Bottom row (Closer to alliance wall)
+  {
+    position: MatchEventPosition.LeftBump,
+    edgeInsets: figmaDimensionsToFieldInsets({
+      x: 15,
+      y: 150,
+      width: 130,
+      height: 90,
+    }),
+  },
+  {
+    position: MatchEventPosition.CenterBack,
+    edgeInsets: figmaDimensionsToFieldInsets({
+      x: 160,
+      y: 150,
+      width: 130,
+      height: 90,
+    }),
+  },
+  {
+    position: MatchEventPosition.RightBump,
+    edgeInsets: figmaDimensionsToFieldInsets({
+      x: 305,
+      y: 150,
+      width: 130,
+      height: 90,
+    }),
+  },
+];
+
+// Teleop shooting positions (Original accurate positions)
+const teleopPositions: Array<{
+  position: MatchEventPosition;
+  edgeInsets: [number, number, number, number];
+}> = [
   {
     position: MatchEventPosition.LeftTrench,
     edgeInsets: figmaDimensionsToFieldInsets({
@@ -42,7 +105,6 @@ const shootingPositions: Array<{
       height: 90,
     }),
   },
-  // Back row (3 positions, further from wall)
   {
     position: MatchEventPosition.LeftBump,
     edgeInsets: figmaDimensionsToFieldInsets({
@@ -79,6 +141,8 @@ export const ShootingPositionActions = () => {
   const reportState = useReportStateStore();
   const gamePhase = reportState.gamePhase;
   const isTeleop = gamePhase === GamePhase.Teleop || gamePhase === GamePhase.Endgame;
+
+  const positions = isTeleop ? teleopPositions : autoPositions;
 
   // Teleop: modal with accuracy rating
   const [activePosition, setActivePosition] = useState<MatchEventPosition | null>(null);
@@ -143,7 +207,7 @@ export const ShootingPositionActions = () => {
 
   return (
     <>
-      {shootingPositions.map(({ position, edgeInsets }) => (
+      {positions.map(({ position, edgeInsets }) => (
         <FieldElement key={position} edgeInsets={edgeInsets}>
           <TouchableOpacity
             style={{
@@ -161,7 +225,21 @@ export const ShootingPositionActions = () => {
             }}
             activeOpacity={0.6}
             onPress={() => handlePositionPress(position)}
-          />
+          >
+            {!isTeleop && (
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: "#3EE679",
+                  opacity: 0.9,
+                  borderWidth: 2,
+                  borderColor: "#ffffff",
+                }}
+              />
+            )}
+          </TouchableOpacity>
         </FieldElement>
       ))}
 
