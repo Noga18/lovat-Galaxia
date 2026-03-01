@@ -9,76 +9,13 @@ import { figmaDimensionsToFieldInsets } from "../../util";
 import * as Haptics from "expo-haptics";
 import { colors } from "../../../colors";
 
-// Auto paths positions (6 dots aligned with the field image's dots)
-// Adjusted coordinates to match the 2026 field image (2 columns of 3 dots near center)
-// These represent the "Path Points" shown in the Dashboard Manager reference image
-const autoPositions: Array<{
+// 6 shooting positions arranged in a 3x2 rectangle
+// These positions are used for both Auto and Teleop in the original design
+const shootingPositions: Array<{
   position: MatchEventPosition;
   edgeInsets: [number, number, number, number];
 }> = [
-  // Left Column (Top to Bottom) - Near center line
-  {
-    position: MatchEventPosition.LeftTrench,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 180,
-      y: 90,
-      width: 44,
-      height: 44,
-    }),
-  },
-  {
-    position: MatchEventPosition.Hub,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 180,
-      y: 132,
-      width: 44,
-      height: 44,
-    }),
-  },
-  {
-    position: MatchEventPosition.LeftBump,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 180,
-      y: 174,
-      width: 44,
-      height: 44,
-    }),
-  },
-  // Right Column (Top to Bottom) - Near center line
-  {
-    position: MatchEventPosition.RightTrench,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 231,
-      y: 90,
-      width: 44,
-      height: 44,
-    }),
-  },
-  {
-    position: MatchEventPosition.CenterBack,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 231,
-      y: 132,
-      width: 44,
-      height: 44,
-    }),
-  },
-  {
-    position: MatchEventPosition.RightBump,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 231,
-      y: 174,
-      width: 44,
-      height: 44,
-    }),
-  },
-];
-
-// Teleop shooting positions (Original accurate positions)
-const teleopPositions: Array<{
-  position: MatchEventPosition;
-  edgeInsets: [number, number, number, number];
-}> = [
+  // Front row (3 positions, closer to alliance wall)
   {
     position: MatchEventPosition.LeftTrench,
     edgeInsets: figmaDimensionsToFieldInsets({
@@ -106,6 +43,7 @@ const teleopPositions: Array<{
       height: 90,
     }),
   },
+  // Back row (3 positions, further from wall)
   {
     position: MatchEventPosition.LeftBump,
     edgeInsets: figmaDimensionsToFieldInsets({
@@ -143,16 +81,12 @@ export const ShootingPositionActions = () => {
   const gamePhase = reportState.gamePhase;
   const isTeleop = gamePhase === GamePhase.Teleop || gamePhase === GamePhase.Endgame;
 
-  const positions = isTeleop ? teleopPositions : autoPositions;
-
   // Teleop: modal with accuracy rating
   const [activePosition, setActivePosition] = useState<MatchEventPosition | null>(null);
   const [accuracy, setAccuracy] = useState(0);
 
-  // Teleop: last selected position stays highlighted
+  // Highlight state
   const [selectedTeleopPosition, setSelectedTeleopPosition] = useState<MatchEventPosition | null>(null);
-
-  // Auto: brief flash to indicate position was marked
   const [flashedPosition, setFlashedPosition] = useState<MatchEventPosition | null>(null);
 
   const handlePositionPress = (position: MatchEventPosition) => {
@@ -208,39 +142,21 @@ export const ShootingPositionActions = () => {
 
   return (
     <>
-      {positions.map(({ position, edgeInsets }) => (
+      {shootingPositions.map(({ position, edgeInsets }) => (
         <FieldElement key={position} edgeInsets={edgeInsets}>
           <TouchableOpacity
-            style={[
-              {
-                width: "100%",
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-              },
-              isTeleop && {
-                backgroundColor: isHighlighted(position) ? "#3EE679" : "#e0e0e0",
-                opacity: isHighlighted(position) ? 0.8 : 0.3,
-                borderRadius: 7,
-              }
-            ]}
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: isHighlighted(position) ? "#3EE679" : "#e0e0e0",
+              opacity: isHighlighted(position) ? 0.8 : 0.3,
+              borderRadius: 7,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
             activeOpacity={0.6}
             onPress={() => handlePositionPress(position)}
-          >
-            {!isTeleop && (
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: "#3EE679",
-                  opacity: isHighlighted(position) ? 1 : 0.4, // Keep dots visible but semi-transparent, full opacity on flash
-                  borderWidth: 2,
-                  borderColor: "#ffffff",
-                }}
-              />
-            )}
-          </TouchableOpacity>
+          />
         </FieldElement>
       ))}
 
