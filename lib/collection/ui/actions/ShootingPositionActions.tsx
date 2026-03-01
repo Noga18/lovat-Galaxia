@@ -9,66 +9,67 @@ import { figmaDimensionsToFieldInsets } from "../../util";
 import * as Haptics from "expo-haptics";
 import { colors } from "../../../colors";
 
-// Auto paths positions (6 squares in a 2x3 grid - as requested from the Dashboard Manager)
-// This matches the layout from the provided dashboard link: 2 rows, 3 columns
+// Auto paths positions (6 dots aligned with the field image's dots)
+// Adjusted coordinates to match the 2026 field image (2 columns of 3 dots near center)
+// These represent the "Path Points" shown in the Dashboard Manager reference image
 const autoPositions: Array<{
   position: MatchEventPosition;
   edgeInsets: [number, number, number, number];
 }> = [
-  // Top row (Middle field area)
+  // Left Column (Top to Bottom) - Near center line
   {
     position: MatchEventPosition.LeftTrench,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 15,
-      y: 35,
-      width: 130,
-      height: 90,
+      x: 180,
+      y: 90,
+      width: 44,
+      height: 44,
     }),
   },
   {
     position: MatchEventPosition.Hub,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 160,
-      y: 35,
-      width: 130,
-      height: 90,
+      x: 180,
+      y: 132,
+      width: 44,
+      height: 44,
     }),
   },
-  {
-    position: MatchEventPosition.RightTrench,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 305,
-      y: 35,
-      width: 130,
-      height: 90,
-    }),
-  },
-  // Bottom row (Closer to alliance wall)
   {
     position: MatchEventPosition.LeftBump,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 15,
-      y: 150,
-      width: 130,
-      height: 90,
+      x: 180,
+      y: 174,
+      width: 44,
+      height: 44,
+    }),
+  },
+  // Right Column (Top to Bottom) - Near center line
+  {
+    position: MatchEventPosition.RightTrench,
+    edgeInsets: figmaDimensionsToFieldInsets({
+      x: 231,
+      y: 90,
+      width: 44,
+      height: 44,
     }),
   },
   {
     position: MatchEventPosition.CenterBack,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 160,
-      y: 150,
-      width: 130,
-      height: 90,
+      x: 231,
+      y: 132,
+      width: 44,
+      height: 44,
     }),
   },
   {
     position: MatchEventPosition.RightBump,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 305,
-      y: 150,
-      width: 130,
-      height: 90,
+      x: 231,
+      y: 174,
+      width: 44,
+      height: 44,
     }),
   },
 ];
@@ -210,19 +211,19 @@ export const ShootingPositionActions = () => {
       {positions.map(({ position, edgeInsets }) => (
         <FieldElement key={position} edgeInsets={edgeInsets}>
           <TouchableOpacity
-            style={{
-              width: "100%",
-              height: "100%",
-              backgroundColor: isHighlighted(position)
-                ? "#3EE679"
-                : "#e0e0e0",
-              opacity: isHighlighted(position)
-                ? 0.8
-                : 0.3,
-              borderRadius: 7,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            style={[
+              {
+                width: "100%",
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+              isTeleop && {
+                backgroundColor: isHighlighted(position) ? "#3EE679" : "#e0e0e0",
+                opacity: isHighlighted(position) ? 0.8 : 0.3,
+                borderRadius: 7,
+              }
+            ]}
             activeOpacity={0.6}
             onPress={() => handlePositionPress(position)}
           >
@@ -233,7 +234,7 @@ export const ShootingPositionActions = () => {
                   height: 32,
                   borderRadius: 16,
                   backgroundColor: "#3EE679",
-                  opacity: 0.9,
+                  opacity: isHighlighted(position) ? 1 : 0.4, // Keep dots visible but semi-transparent, full opacity on flash
                   borderWidth: 2,
                   borderColor: "#ffffff",
                 }}
