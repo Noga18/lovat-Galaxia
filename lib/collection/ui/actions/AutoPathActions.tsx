@@ -34,28 +34,18 @@ type PathPoint = {
   actionColor?: string;
 };
 
-type ActionButton = {
-  label: string;
-  type: MatchEventType;
-  position: MatchEventPosition;
-  color: string;
-  isMoving?: boolean;
-};
-
-const ACTION_BUTTONS: ActionButton[] = [
-  { label: "Climb",        type: MatchEventType.Climb,        position: MatchEventPosition.None,        color: "#FFD700" },
-  { label: "Intake",       type: MatchEventType.Intake,       position: MatchEventPosition.None,        color: "#1E90FF" },
-  { label: "Shoot",        type: MatchEventType.StartScoring, position: MatchEventPosition.None,        color: "#3EE679" },
-  { label: "Shoot Moving", type: MatchEventType.StartScoring, position: MatchEventPosition.NeutralZone, color: "#9370DB", isMoving: true },
-];
-
 export const AutoPathActions = () => {
   const reportState = useReportStateStore();
   const [path, setPath] = useState<PathPoint[]>([]);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [isClimbed, setIsClimbed] = useState(false);
   const initializedRef = useRef(false);
 
-  // onLayout on the root absoluteFill container — gives full field dimensions
+  // Refs to track press-start time for shoot buttons (duration measurement)
+  const shootPressStartRef = useRef<number | null>(null);
+  const shootMovingPressStartRef = useRef<number | null>(null);
+
+  // onLayout on the root container — gives full field dimensions
   const onContainerLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
     if (width === 0 || height === 0) return;
@@ -66,7 +56,6 @@ export const AutoPathActions = () => {
       const figma = START_FIGMA[reportState.startPosition];
       if (figma) {
         initializedRef.current = true;
-        // Map from figma coordinate space to actual container pixels
         const px = (figma.x / FIGMA_W) * width;
         const py = (figma.y / FIGMA_H) * height;
         setPath([{ x: px, y: py }]);
@@ -75,28 +64,109 @@ export const AutoPathActions = () => {
   };
 
   const addPathPoint = (x: number, y: number) => {
+    if (isClimbed) return; // Path drawing is locked after climb
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPath((prev) => [...prev, { x, y }]);
-    reportState.addEvent({ type: MatchEventType.Cross, position: MatchEventPosition.None });
+    // timestamp is automatically set to Date.now() inside addEvent
+    reportState.addEvent({
+      type: MatchEventType.Cross,
+      position: MatchEventPosition.None,
+    });
   };
 
-  const handleAction = (action: ActionButton) => {
+  // ── Climb ────────────────────────────────────────────────────────────
+  const handleClimb = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setIsClimbed(true);
+    // Color last path point yellow to mark climb location
+    setPath((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      updated[updated.length - 1] = { ...updated[updated.length - 1], actionColor: "#FFD700" };
+      return updated;
+    });
+    reportState.addEvent({ type: MatchEventType.Climb, position: MatchEventPosition.None });
+  };
+
+  const handleCancelClimb = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsClimbed(false);
+    // Remove climb color from last point
+    setPath((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      if (last.actionColor === "#FFD700") {
+        updated[updated.length - 1] = { x: last.x, y: last.y };
+      }
+      return updated;
+    });
+    // Remove all Climb events from the report
+    reportState.stopClimbing();
+  };
 
-    // Color the last path point for non-moving actions
-    if (!action.isMoving) {
-      setPath((prev) => {
-        if (prev.length === 0) return prev;
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...updated[updated.length - 1],
-          actionColor: action.color,
-        };
-        return updated;
-      });
-    }
+  // ── Intake ───────────────────────────────────────────────────────────
+  const handleIntake = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setPath((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      updated[updated.length - 1] = { ...updated[updated.length - 1], actionColor: "#1E90FF" };
+      return updated;
+    });
+    reportState.addEvent({ type: MatchEventType.Intake, position: MatchEventPosition.None });
+  };
 
-    reportState.addEvent({ type: action.type, position: action.position });
+  // ── Shoot (hold to measure duration) ────────────────────────────────
+  const handleShootPressIn = () => {
+    shootPressStartRef.current = Date.now();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    // Record start; mark last path point green
+    setPath((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      updated[updated.length - 1] = { ...updated[updated.length - 1], actionColor: "#3EE679" };
+      return updated;
+    });
+    reportState.addEvent({
+      type: MatchEventType.StartScoring,
+      position: MatchEventPosition.None,
+    });
+  };
+
+  const handleShootPressOut = () => {
+    if (shootPressStartRef.current === null) return;
+    const durationSec = (Date.now() - shootPressStartRef.current) / 1000;
+    shootPressStartRef.current = null;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // quantity stores duration in tenths of a second (e.g. 1.5s → 15)
+    reportState.addEvent({
+      type: MatchEventType.StopScoring,
+      position: MatchEventPosition.None,
+      quantity: Math.round(durationSec * 10),
+    });
+  };
+
+  // ── Shoot Moving (hold to measure duration) ──────────────────────────
+  const handleShootMovingPressIn = () => {
+    shootMovingPressStartRef.current = Date.now();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    reportState.addEvent({
+      type: MatchEventType.StartScoring,
+      position: MatchEventPosition.NeutralZone,
+    });
+  };
+
+  const handleShootMovingPressOut = () => {
+    if (shootMovingPressStartRef.current === null) return;
+    const durationSec = (Date.now() - shootMovingPressStartRef.current) / 1000;
+    shootMovingPressStartRef.current = null;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    reportState.addEvent({
+      type: MatchEventType.StopScoring,
+      position: MatchEventPosition.NeutralZone,
+      quantity: Math.round(durationSec * 10),
+    });
   };
 
   return (
@@ -105,10 +175,7 @@ export const AutoPathActions = () => {
       {/* ── 1. SVG path layer — purely visual, no touch interaction ── */}
       {containerSize.width > 0 && (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <Svg
-            width={containerSize.width}
-            height={containerSize.height}
-          >
+          <Svg width={containerSize.width} height={containerSize.height}>
             {path.map((point, i) => (
               <React.Fragment key={i}>
                 {i > 0 && (
@@ -136,31 +203,69 @@ export const AutoPathActions = () => {
         </View>
       )}
 
-      {/* ── 2. Field touch handler — full area, uses gesture responders directly ── */}
-      {/*    Rendered before buttons so buttons (rendered later) take priority        */}
-      <View
-        style={StyleSheet.absoluteFill}
-        onStartShouldSetResponder={() => true}
-        onResponderGrant={(e) => {
-          addPathPoint(e.nativeEvent.locationX, e.nativeEvent.locationY);
-        }}
-      />
+      {/* ── 2. Field touch handler (locked when climbed) ── */}
+      {!isClimbed && (
+        <View
+          style={StyleSheet.absoluteFill}
+          onStartShouldSetResponder={() => true}
+          onResponderGrant={(e) => {
+            addPathPoint(e.nativeEvent.locationX, e.nativeEvent.locationY);
+          }}
+        />
+      )}
 
-      {/* ── 3. Action buttons — rendered last = highest z-order                    ── */}
-      {/*    Standard TouchableOpacity buttons intercept their own touches first     */}
+      {/* ── 3. Action buttons sidebar ── */}
       <View style={styles.buttonPanel} pointerEvents="box-none">
-        {ACTION_BUTTONS.map((action) => (
+
+        {/* Climb / Cancel Climb */}
+        {!isClimbed ? (
           <TouchableOpacity
-            key={action.label}
-            style={[styles.actionButton, { backgroundColor: action.color }]}
-            onPress={() => handleAction(action)}
+            style={[styles.actionButton, { backgroundColor: "#FFD700" }]}
+            onPress={handleClimb}
             activeOpacity={0.7}
           >
-            <Text style={styles.buttonText}>{action.label}</Text>
+            <Text style={styles.buttonText}>Climb</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.cancelButton]}
+            onPress={handleCancelClimb}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.buttonText, { color: "#fff" }]}>Cancel{"\n"}Climb</Text>
+          </TouchableOpacity>
+        )}
 
+        {/* Intake */}
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: "#1E90FF" }]}
+          onPress={handleIntake}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.buttonText}>Intake</Text>
+        </TouchableOpacity>
+
+        {/* Shoot — held to measure duration */}
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: "#3EE679" }]}
+          onPressIn={handleShootPressIn}
+          onPressOut={handleShootPressOut}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.buttonText}>Shoot</Text>
+        </TouchableOpacity>
+
+        {/* Shoot Moving — held to measure duration */}
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: "#9370DB" }]}
+          onPressIn={handleShootMovingPressIn}
+          onPressOut={handleShootMovingPressOut}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.buttonText}>Shoot{"\n"}Moving</Text>
+        </TouchableOpacity>
+
+      </View>
     </View>
   );
 };
@@ -181,6 +286,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     elevation: 4,
+  },
+  cancelButton: {
+    backgroundColor: "#cc2222",
+    borderWidth: 2,
+    borderColor: "#ff6666",
   },
   buttonText: {
     color: "#1a1a1a",
