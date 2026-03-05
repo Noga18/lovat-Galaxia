@@ -26,6 +26,15 @@ export enum GamePhase {
 export type StartingPosition =
   (typeof startingPositions)[keyof typeof startingPositions];
 
+// A single point on the auto path, stored as ratios (0..1) relative to field size
+export type AutoPathPoint = {
+  xRatio: number;
+  yRatio: number;
+  actionColor?: string;
+  // ms since epoch; first (start) point has timestamp -1
+  timestamp: number;
+};
+
 export type ReportState = {
   uuid?: string;
   meta?: ScoutReportMeta;
@@ -33,6 +42,10 @@ export type ReportState = {
   startTimestamp?: Date;
   startPosition?: StartingPosition;
   gamePhase: GamePhase;
+
+  // Auto path drawn on the field
+  autoPath: AutoPathPoint[];
+  setAutoPath: (path: AutoPathPoint[]) => void;
 
   // Post-match fields
   robotRole: RobotRole[];

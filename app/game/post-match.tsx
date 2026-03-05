@@ -1,4 +1,4 @@
-import { Alert, View } from "react-native";
+import { Alert, Image, StyleSheet, View } from "react-native";
 import { NavBar } from "../../lib/components/NavBar";
 import { Stack, router, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -39,6 +39,9 @@ import { Checkbox } from "../../lib/components/Checkbox";
 import { RobotRole } from "../../lib/collection/RobotRole";
 import { MatchEventType } from "../../lib/collection/MatchEventType";
 import { MatchEvent } from "../../lib/collection/MatchEvent";
+import { AutoPathPoint } from "../../lib/collection/ReportState";
+import { AllianceColor } from "../../lib/models/AllianceColor";
+import Svg, { Line, Circle } from "react-native-svg";
 
 export default function PostMatch() {
   const reportState = useReportStateStore();
@@ -96,6 +99,13 @@ export default function PostMatch() {
           edges={["bottom", "left", "right"]}
           style={{ flex: 1, gap: 14, paddingBottom: 200, maxWidth: 550 }}
         >
+          <AutoSummary
+            autoPath={reportState.autoPath}
+            events={reportState.events}
+            startTimestamp={reportState.startTimestamp}
+            allianceColor={reportState.meta?.allianceColor}
+          />
+
           <PostMatchSelector
             title="Robot roles"
             items={robotRoleDescriptions.map((roleDescription) => ({
@@ -437,6 +447,179 @@ function PostMatchSelector<TItem, TOutput = TItem>(
     </View>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auto Summary: field image with path + event list
+// ─────────────────────────────────────────────────────────────────────────────
+
+const fieldNormal = require("../../assets/field-2026.png");
+const fieldRotated = require("../../assets/field-2026-rotated.png");
+
+// Field display: fixed 16:8 (2:1) aspect ratio, full width
+const AUTO_EVENT_LABELS: Partial<Record<MatchEventType, string>> = {
+  [MatchEventType.Intake]: "Intake",
+  [MatchEventType.StartScoring]: "Shot start",
+  [MatchEventType.StopScoring]: "Shot end",
+  [MatchEventType.Climb]: "Climb",
+  [MatchEventType.Cross]: "Waypoint",
+};
+
+type AutoSummaryProps = {
+  autoPath: AutoPathPoint[];
+  events: MatchEvent[];
+  startTimestamp?: Date;
+  allianceColor?: AllianceColor;
+};
+
+const AutoSummary = ({ autoPath, events, startTimestamp, allianceColor }: AutoSummaryProps) => {
+  const imageSource = allianceColor === AllianceColor.Blue ? fieldRotated : fieldNormal;
+  const startMs = startTimestamp?.getTime() ?? 0;
+
+  // Auto ends at 23 seconds; filter only auto-phase events
+  const autoEndMs = startMs + 23_000;
+  const autoEvents = events.filter(
+    (e) =>
+      e.timestamp <= autoEndMs &&
+      e.type !== MatchEventType.Cross, // Cross events shown as path dots, not in list
+  );
+
+  // Build a readable event list
+  type EventRow = { label: string; timeS: number; detail?: string; color: string };
+  const rows: EventRow[] = autoEvents.map((e) => {
+    const timeS = startMs > 0 ? (e.timestamp - startMs) / 1000 : 0;
+    let detail: string | undefined;
+    let color = "#aaa";
+
+    if (e.type === MatchEventType.Intake) color = "#1E90FF";
+    if (e.type === MatchEventType.StartScoring) color = "#3EE679";
+    if (e.type === MatchEventType.StopScoring) {
+      color = "#3EE679";
+      if (e.quantity !== undefined) {
+        // quantity stored in tenths of a second
+        detail = `${(e.quantity / 10).toFixed(1)}s`;
+      }
+    }
+    if (e.type === MatchEventType.Climb) color = "#FFD700";
+
+    return {
+      label: AUTO_EVENT_LABELS[e.type] ?? "Event",
+      timeS,
+      detail,
+      color,
+    };
+  });
+
+  if (autoPath.length === 0 && rows.length === 0) return null;
+
+  return (
+    <View style={autoSummaryStyles.container}>
+      <LabelSmall>Auto Path</LabelSmall>
+
+      {/* Field image with path overlay */}
+      {autoPath.length > 0 && (
+        <View style={autoSummaryStyles.fieldWrapper}>
+          <Image
+            source={imageSource}
+            style={autoSummaryStyles.fieldImage}
+            resizeMode="stretch"
+          />
+          {/* SVG path overlay using ratios */}
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <Svg width="100%" height="100%">
+              {autoPath.map((point, i) => {
+                // SVG uses percentages via strings; compute inline style below
+                const x = `${(point.xRatio * 100).toFixed(2)}%`;
+                const y = `${(point.yRatio * 100).toFixed(2)}%`;
+                const prev = autoPath[i - 1];
+                const x1 = prev ? `${(prev.xRatio * 100).toFixed(2)}%` : x;
+                const y1 = prev ? `${(prev.yRatio * 100).toFixed(2)}%` : y;
+                return (
+                  <React.Fragment key={i}>
+                    {i > 0 && (
+                      <Line
+                        x1={x1}
+                        y1={y1}
+                        x2={x}
+                        y2={y}
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    )}
+                    <Circle
+                      cx={x}
+                      cy={y}
+                      r={point.actionColor ? 8 : 4}
+                      fill={point.actionColor ?? "white"}
+                      stroke="rgba(0,0,0,0.6)"
+                      strokeWidth={1}
+                    />
+                  </React.Fragment>
+                );
+              })}
+            </Svg>
+          </View>
+        </View>
+      )}
+
+      {/* Event list */}
+      {rows.length > 0 && (
+        <View style={autoSummaryStyles.eventList}>
+          {rows.map((row, i) => (
+            <View key={i} style={autoSummaryStyles.eventRow}>
+              <View style={[autoSummaryStyles.eventDot, { backgroundColor: row.color }]} />
+              <BodyMedium style={{ flex: 1 }}>{row.label}</BodyMedium>
+              {row.detail && (
+                <BodyMedium style={{ color: "#aaa", marginRight: 8 }}>{row.detail}</BodyMedium>
+              )}
+              <BodyMedium style={{ color: "#888", minWidth: 44, textAlign: "right" }}>
+                {row.timeS.toFixed(1)}s
+              </BodyMedium>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const autoSummaryStyles = StyleSheet.create({
+  container: {
+    gap: 8,
+  },
+  fieldWrapper: {
+    width: "100%",
+    aspectRatio: 1964 / 978,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: "#111",
+  },
+  fieldImage: {
+    width: "100%",
+    height: "100%",
+  },
+  eventList: {
+    backgroundColor: "#1e1e1e",
+    borderRadius: 8,
+    paddingVertical: 4,
+  },
+  eventRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#333",
+  },
+  eventDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const shootingPositionNames: Record<number, string> = {
   [MatchEventPosition.LeftTrench]: "Left Front",

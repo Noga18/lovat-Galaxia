@@ -1,4 +1,4 @@
-import { GamePhase, ReportState } from "./ReportState";
+import { AutoPathPoint, GamePhase, ReportState } from "./ReportState";
 import { MatchEventPosition } from "./MatchEventPosition";
 import { create } from "zustand";
 import { v4 } from "uuid";
@@ -29,6 +29,7 @@ import {
 
 const initialState = {
   events: [],
+  autoPath: [] as AutoPathPoint[],
   gamePhase: GamePhase.Auto,
   robotRole: [] as RobotRole[],
   robotBrokeDescription: null as string | null,
@@ -67,6 +68,7 @@ export const useReportStateStore = create<ReportState>((set, get) => ({
     set(() => ({ startTimestamp: new Date() }));
   },
 
+  setAutoPath: (value) => set({ autoPath: value }),
   setStartPosition: (value) => set({ startPosition: value }),
   setGamePhase: (value) => set({ gamePhase: value }),
   setRobotRole: (value) => set({ robotRole: value }),

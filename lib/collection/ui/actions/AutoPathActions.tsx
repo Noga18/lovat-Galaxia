@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -32,6 +32,8 @@ type PathPoint = {
   x: number;
   y: number;
   actionColor?: string;
+  // ms since epoch when this point was placed (-1 = starting position, no timestamp)
+  timestamp: number;
 };
 
 export const AutoPathActions = () => {
@@ -58,7 +60,8 @@ export const AutoPathActions = () => {
         initializedRef.current = true;
         const px = (figma.x / FIGMA_W) * width;
         const py = (figma.y / FIGMA_H) * height;
-        setPath([{ x: px, y: py }]);
+        // timestamp -1 marks this as the initial starting position (not a tap)
+        setPath([{ x: px, y: py, timestamp: -1 }]);
       }
     }
   };
@@ -66,13 +69,27 @@ export const AutoPathActions = () => {
   const addPathPoint = (x: number, y: number) => {
     if (isClimbed) return; // Path drawing is locked after climb
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setPath((prev) => [...prev, { x, y }]);
-    // timestamp is automatically set to Date.now() inside addEvent
+    const now = Date.now();
+    setPath((prev) => [...prev, { x, y, timestamp: now }]);
     reportState.addEvent({
       type: MatchEventType.Cross,
       position: MatchEventPosition.None,
+      timestamp: now,
     });
   };
+
+  // Sync path to the global store as ratio-based coordinates so post-match can render it
+  useEffect(() => {
+    if (containerSize.width === 0 || containerSize.height === 0) return;
+    reportState.setAutoPath(
+      path.map((p) => ({
+        xRatio: p.x / containerSize.width,
+        yRatio: p.y / containerSize.height,
+        actionColor: p.actionColor,
+        timestamp: p.timestamp,
+      })),
+    );
+  }, [path, containerSize]);
 
   // ── Climb ────────────────────────────────────────────────────────────
   const handleClimb = () => {
@@ -97,7 +114,7 @@ export const AutoPathActions = () => {
       const updated = [...prev];
       const last = updated[updated.length - 1];
       if (last.actionColor === "#FFD700") {
-        updated[updated.length - 1] = { x: last.x, y: last.y };
+        updated[updated.length - 1] = { x: last.x, y: last.y, timestamp: last.timestamp };
       }
       return updated;
     });
