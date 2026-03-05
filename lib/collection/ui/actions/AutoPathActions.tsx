@@ -1,119 +1,149 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, TouchableOpacity, Text, StyleSheet, LayoutChangeEvent } from "react-native";
+import React, { useState, useRef } from "react";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  LayoutChangeEvent,
+  GestureResponderEvent,
+} from "react-native";
 import { useReportStateStore } from "../../reportStateStore";
 import { MatchEventType } from "../../MatchEventType";
 import { MatchEventPosition } from "../../MatchEventPosition";
 import * as Haptics from "expo-haptics";
-import { colors } from "../../../colors";
 import Svg, { Line, Circle } from "react-native-svg";
 
-const ACTION_BUTTONS = [
-  { label: "Climb", type: MatchEventType.Climb, color: "#FFD700" },
-  { label: "Intake", type: MatchEventType.Intake, color: "#1E90FF" },
-  { label: "Shoot", type: MatchEventType.StartScoring, color: "#3EE679" },
-  { label: "Shoot Moving", type: MatchEventType.StartScoring, isMoving: true, color: "#9370DB" },
+// Figma field is 677x337
+// Starting position centers (center of each box):
+//   Front row (x=65, w=55 → cx=92.5): y=15 h=90 → cy=60 | y=120 h=90 → cy=165 | y=225 h=90 → cy=270
+//   Back row  (x=140, w=55 → cx=167.5): same y values
+const FIGMA_W = 677;
+const FIGMA_H = 337;
+
+const START_FIGMA: Partial<Record<MatchEventPosition, { x: number; y: number }>> = {
+  [MatchEventPosition.LeftTrench]:  { x: 92.5,  y: 60  },
+  [MatchEventPosition.Hub]:          { x: 92.5,  y: 165 },
+  [MatchEventPosition.RightTrench]: { x: 92.5,  y: 270 },
+  [MatchEventPosition.LeftBump]:    { x: 167.5, y: 60  },
+  [MatchEventPosition.CenterBack]:  { x: 167.5, y: 165 },
+  [MatchEventPosition.RightBump]:   { x: 167.5, y: 270 },
+};
+
+const BUTTON_PANEL_WIDTH = 90;
+
+type PathPoint = {
+  x: number;
+  y: number;
+  actionColor?: string;
+};
+
+type ActionButton = {
+  label: string;
+  type: MatchEventType;
+  position: MatchEventPosition;
+  color: string;
+  isMoving?: boolean;
+};
+
+const ACTION_BUTTONS: ActionButton[] = [
+  { label: "Climb",        type: MatchEventType.Climb,        position: MatchEventPosition.None,        color: "#FFD700" },
+  { label: "Intake",       type: MatchEventType.Intake,       position: MatchEventPosition.None,        color: "#1E90FF" },
+  { label: "Shoot",        type: MatchEventType.StartScoring, position: MatchEventPosition.None,        color: "#3EE679" },
+  { label: "Shoot Moving", type: MatchEventType.StartScoring, position: MatchEventPosition.NeutralZone, color: "#9370DB", isMoving: true },
 ];
 
 export const AutoPathActions = () => {
   const reportState = useReportStateStore();
-  const [path, setPath] = useState<{ x: number, y: number, event?: MatchEventType, color?: string }[]>([]);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const hasInitializedRef = useRef(false);
+  const [path, setPath] = useState<PathPoint[]>([]);
+  const [fieldSize, setFieldSize] = useState({ width: 0, height: 0 });
+  const initializedRef = useRef(false);
 
-  const onLayout = (event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout;
-    setContainerSize({ width, height });
-  };
+  // Called when the field touch area (left portion) gets its layout
+  const onFieldLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width === 0 || height === 0) return;
+    setFieldSize({ width, height });
 
-  useEffect(() => {
-    if (containerSize.width > 0 && containerSize.height > 0 && !hasInitializedRef.current) {
-      if (reportState.startPosition !== undefined) {
-        let xPercent = 65;
-        let yPercent = 120;
-        
-        const pos = reportState.startPosition;
-        if (pos === MatchEventPosition.LeftTrench) { xPercent = 65; yPercent = 15 + 45; }
-        else if (pos === MatchEventPosition.Hub) { xPercent = 65; yPercent = 120 + 45; }
-        else if (pos === MatchEventPosition.RightTrench) { xPercent = 65; yPercent = 225 + 45; }
-        else if (pos === MatchEventPosition.LeftBump) { xPercent = 140; yPercent = 15 + 45; }
-        else if (pos === MatchEventPosition.CenterBack) { xPercent = 140; yPercent = 120 + 45; }
-        else if (pos === MatchEventPosition.RightBump) { xPercent = 140; yPercent = 225 + 45; }
-
-        const x = (xPercent / 677) * containerSize.width;
-        const y = (yPercent / 337) * containerSize.height;
-
-        setPath([{ x, y }]);
-        hasInitializedRef.current = true;
+    // Initialize with starting position dot
+    if (!initializedRef.current && reportState.startPosition !== undefined) {
+      const figma = START_FIGMA[reportState.startPosition];
+      if (figma) {
+        initializedRef.current = true;
+        const px = (figma.x / FIGMA_W) * width;
+        const py = (figma.y / FIGMA_H) * height;
+        setPath([{ x: px, y: py }]);
       }
     }
-  }, [containerSize, reportState.startPosition]);
-
-  const handleFieldPress = (event: any) => {
-    const { locationX, locationY } = event.nativeEvent;
-    const newPoint = { x: locationX, y: locationY };
-    setPath(prev => [...prev, newPoint]);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
-    reportState.addEvent({
-      type: MatchEventType.Cross,
-      position: MatchEventPosition.None,
-    });
   };
 
-  const handleAction = (action: typeof ACTION_BUTTONS[0]) => {
-    if (path.length === 0) return;
-    
+  const handleFieldPress = (e: GestureResponderEvent) => {
+    const { locationX, locationY } = e.nativeEvent;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPath((prev) => [...prev, { x: locationX, y: locationY }]);
+    reportState.addEvent({ type: MatchEventType.Cross, position: MatchEventPosition.None });
+  };
+
+  const handleAction = (action: ActionButton) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const lastPoint = path[path.length - 1];
-    
+
+    // For non-moving actions: color the last path point
     if (!action.isMoving) {
-      const newPath = [...path];
-      newPath[newPath.length - 1] = { ...lastPoint, event: action.type, color: action.color };
-      setPath(newPath);
+      setPath((prev) => {
+        if (prev.length === 0) return prev;
+        const updated = [...prev];
+        updated[updated.length - 1] = { ...updated[updated.length - 1], actionColor: action.color };
+        return updated;
+      });
     }
 
-    reportState.addEvent({
-      type: action.type,
-      position: action.isMoving ? MatchEventPosition.NeutralZone : MatchEventPosition.None,
-    });
+    reportState.addEvent({ type: action.type, position: action.position });
   };
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none" onLayout={onLayout}>
-      {containerSize.width > 0 && (
-        <View style={StyleSheet.absoluteFill} pointerEvents="auto">
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFill} 
-            onPress={handleFieldPress}
-            activeOpacity={1}
+    // Row layout: field touch area (flex: 1) + button sidebar (fixed width)
+    <View style={styles.container}>
+      {/* Left: field touch area */}
+      <TouchableOpacity
+        style={styles.fieldArea}
+        activeOpacity={1}
+        onPress={handleFieldPress}
+        onLayout={onFieldLayout}
+      >
+        {fieldSize.width > 0 && (
+          <Svg
+            width={fieldSize.width}
+            height={fieldSize.height}
+            style={StyleSheet.absoluteFill}
           >
-            <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
-              {path.map((point, i) => (
-                <React.Fragment key={i}>
-                  {i > 0 && (
-                    <Line
-                      x1={path[i-1].x}
-                      y1={path[i-1].y}
-                      x2={point.x}
-                      y2={point.y}
-                      stroke="white"
-                      strokeWidth="2"
-                    />
-                  )}
-                  <Circle
-                    cx={point.x}
-                    cy={point.y}
-                    r={point.event ? 8 : 4}
-                    fill={point.color || "white"}
+            {path.map((point, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && (
+                  <Line
+                    x1={path[i - 1].x}
+                    y1={path[i - 1].y}
+                    x2={point.x}
+                    y2={point.y}
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
                   />
-                </React.Fragment>
-              ))}
-            </Svg>
-          </TouchableOpacity>
-        </View>
-      )}
+                )}
+                <Circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={point.actionColor ? 10 : 5}
+                  fill={point.actionColor ?? "white"}
+                  stroke="rgba(0,0,0,0.5)"
+                  strokeWidth={1.5}
+                />
+              </React.Fragment>
+            ))}
+          </Svg>
+        )}
+      </TouchableOpacity>
 
-      <View style={styles.buttonContainer}>
+      {/* Right: action buttons sidebar */}
+      <View style={styles.sidebar}>
         {ACTION_BUTTONS.map((action) => (
           <TouchableOpacity
             key={action.label}
@@ -130,21 +160,31 @@ export const AutoPathActions = () => {
 };
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    position: "absolute",
-    right: 10,
-    top: "10%",
-    gap: 10,
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: "row",
+  },
+  fieldArea: {
+    flex: 1,
+  },
+  sidebar: {
+    width: BUTTON_PANEL_WIDTH,
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 8,
+    paddingRight: 4,
   },
   actionButton: {
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     borderRadius: 8,
-    minWidth: 80,
     alignItems: "center",
+    elevation: 4,
   },
   buttonText: {
-    color: "#1f1f1f",
-    fontWeight: "bold",
-    fontSize: 12,
+    color: "#1a1a1a",
+    fontWeight: "700",
+    fontSize: 11,
+    textAlign: "center",
   },
 });
