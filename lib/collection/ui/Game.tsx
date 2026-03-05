@@ -30,7 +30,6 @@ import { AutoPathActions } from "./actions/AutoPathActions";
 
 export function Game() {
   const reportState = useReportStateStore();
-  // ... rest of imports
 
   const timeoutsRef = useRef<{
     teleop?: NodeJS.Timeout;

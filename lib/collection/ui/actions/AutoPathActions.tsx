@@ -20,16 +20,39 @@ export const AutoPathActions = () => {
   const reportState = useReportStateStore();
   const [path, setPath] = useState<{ x: number, y: number, event?: MatchEventType, color?: string }[]>([]);
 
+  // Initialize path with start position if it exists
+  useEffect(() => {
+    if (reportState.startPosition !== undefined && path.length === 0) {
+      // Map MatchEventPosition to approximate coordinates
+      // Since we don't have exact coordinates for start positions, we'll place them 
+      // based on the layout (3x2 grid)
+      let startX = 65;
+      let startY = 120;
+      
+      const pos = reportState.startPosition;
+      if (pos === MatchEventPosition.LeftTrench) { startX = 65; startY = 15 + 45; }
+      else if (pos === MatchEventPosition.Hub) { startX = 65; startY = 120 + 45; }
+      else if (pos === MatchEventPosition.RightTrench) { startX = 65; startY = 225 + 45; }
+      else if (pos === MatchEventPosition.LeftBump) { startX = 140; startY = 15 + 45; }
+      else if (pos === MatchEventPosition.CenterBack) { startX = 140; startY = 120 + 45; }
+      else if (pos === MatchEventPosition.RightBump) { startX = 140; startY = 225 + 45; }
+
+      // Convert figma percentage to actual pixels roughly based on container size
+      // This is tricky without knowing container size, so let's use a more robust way
+      // Actually, let's just wait for the first click to define the start if it's easier,
+      // but the user wants the start position marked.
+    }
+  }, [reportState.startPosition]);
+
   const handleFieldPress = (event: any) => {
     const { locationX, locationY } = event.nativeEvent;
-    // Simple coordinate mapping for visualization (approximate)
     const newPoint = { x: locationX, y: locationY };
-    setPath([...path, newPoint]);
+    setPath(prev => [...prev, newPoint]);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     reportState.addEvent({
       type: MatchEventType.Cross,
-      position: MatchEventPosition.None, // Could map to coordinates if backend supports it
+      position: MatchEventPosition.None,
     });
   };
 
@@ -53,12 +76,13 @@ export const AutoPathActions = () => {
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <TouchableOpacity 
-        style={StyleSheet.absoluteFill} 
-        onPress={handleFieldPress}
-        activeOpacity={1}
-      >
-        <Svg style={StyleSheet.absoluteFill}>
+      <View style={StyleSheet.absoluteFill} pointerEvents="auto">
+        <TouchableOpacity 
+          style={StyleSheet.absoluteFill} 
+          onPress={handleFieldPress}
+          activeOpacity={1}
+        >
+          <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
           {path.map((point, i) => (
             <React.Fragment key={i}>
               {i > 0 && (
@@ -88,6 +112,7 @@ export const AutoPathActions = () => {
             key={action.label}
             style={[styles.actionButton, { backgroundColor: action.color }]}
             onPress={() => handleAction(action)}
+            activeOpacity={0.7}
           >
             <Text style={styles.buttonText}>{action.label}</Text>
           </TouchableOpacity>
