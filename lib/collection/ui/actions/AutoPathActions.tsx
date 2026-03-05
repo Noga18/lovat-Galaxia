@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, TouchableOpacity, Text, StyleSheet, LayoutChangeEvent } from "react-native";
 import { useReportStateStore } from "../../reportStateStore";
 import { MatchEventType } from "../../MatchEventType";
 import { MatchEventPosition } from "../../MatchEventPosition";
-import { FieldElement } from "../FieldElement";
-import { figmaDimensionsToFieldInsets } from "../../util";
 import * as Haptics from "expo-haptics";
 import { colors } from "../../../colors";
 import Svg, { Line, Circle } from "react-native-svg";
@@ -19,30 +17,36 @@ const ACTION_BUTTONS = [
 export const AutoPathActions = () => {
   const reportState = useReportStateStore();
   const [path, setPath] = useState<{ x: number, y: number, event?: MatchEventType, color?: string }[]>([]);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const hasInitializedRef = useRef(false);
 
-  // Initialize path with start position if it exists
+  const onLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setContainerSize({ width, height });
+  };
+
   useEffect(() => {
-    if (reportState.startPosition !== undefined && path.length === 0) {
-      // Map MatchEventPosition to approximate coordinates
-      // Since we don't have exact coordinates for start positions, we'll place them 
-      // based on the layout (3x2 grid)
-      let startX = 65;
-      let startY = 120;
-      
-      const pos = reportState.startPosition;
-      if (pos === MatchEventPosition.LeftTrench) { startX = 65; startY = 15 + 45; }
-      else if (pos === MatchEventPosition.Hub) { startX = 65; startY = 120 + 45; }
-      else if (pos === MatchEventPosition.RightTrench) { startX = 65; startY = 225 + 45; }
-      else if (pos === MatchEventPosition.LeftBump) { startX = 140; startY = 15 + 45; }
-      else if (pos === MatchEventPosition.CenterBack) { startX = 140; startY = 120 + 45; }
-      else if (pos === MatchEventPosition.RightBump) { startX = 140; startY = 225 + 45; }
+    if (containerSize.width > 0 && containerSize.height > 0 && !hasInitializedRef.current) {
+      if (reportState.startPosition !== undefined) {
+        let xPercent = 65;
+        let yPercent = 120;
+        
+        const pos = reportState.startPosition;
+        if (pos === MatchEventPosition.LeftTrench) { xPercent = 65; yPercent = 15 + 45; }
+        else if (pos === MatchEventPosition.Hub) { xPercent = 65; yPercent = 120 + 45; }
+        else if (pos === MatchEventPosition.RightTrench) { xPercent = 65; yPercent = 225 + 45; }
+        else if (pos === MatchEventPosition.LeftBump) { xPercent = 140; yPercent = 15 + 45; }
+        else if (pos === MatchEventPosition.CenterBack) { xPercent = 140; yPercent = 120 + 45; }
+        else if (pos === MatchEventPosition.RightBump) { xPercent = 140; yPercent = 225 + 45; }
 
-      // Convert figma percentage to actual pixels roughly based on container size
-      // This is tricky without knowing container size, so let's use a more robust way
-      // Actually, let's just wait for the first click to define the start if it's easier,
-      // but the user wants the start position marked.
+        const x = (xPercent / 677) * containerSize.width;
+        const y = (yPercent / 337) * containerSize.height;
+
+        setPath([{ x, y }]);
+        hasInitializedRef.current = true;
+      }
     }
-  }, [reportState.startPosition]);
+  }, [containerSize, reportState.startPosition]);
 
   const handleFieldPress = (event: any) => {
     const { locationX, locationY } = event.nativeEvent;
@@ -75,36 +79,39 @@ export const AutoPathActions = () => {
   };
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <View style={StyleSheet.absoluteFill} pointerEvents="auto">
-        <TouchableOpacity 
-          style={StyleSheet.absoluteFill} 
-          onPress={handleFieldPress}
-          activeOpacity={1}
-        >
-          <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
-          {path.map((point, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && (
-                <Line
-                  x1={path[i-1].x}
-                  y1={path[i-1].y}
-                  x2={point.x}
-                  y2={point.y}
-                  stroke="white"
-                  strokeWidth="2"
-                />
-              )}
-              <Circle
-                cx={point.x}
-                cy={point.y}
-                r={point.event ? 6 : 3}
-                fill={point.color || "white"}
-              />
-            </React.Fragment>
-          ))}
-        </Svg>
-      </TouchableOpacity>
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none" onLayout={onLayout}>
+      {containerSize.width > 0 && (
+        <View style={StyleSheet.absoluteFill} pointerEvents="auto">
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFill} 
+            onPress={handleFieldPress}
+            activeOpacity={1}
+          >
+            <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+              {path.map((point, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && (
+                    <Line
+                      x1={path[i-1].x}
+                      y1={path[i-1].y}
+                      x2={point.x}
+                      y2={point.y}
+                      stroke="white"
+                      strokeWidth="2"
+                    />
+                  )}
+                  <Circle
+                    cx={point.x}
+                    cy={point.y}
+                    r={point.event ? 8 : 4}
+                    fill={point.color || "white"}
+                  />
+                </React.Fragment>
+              ))}
+            </Svg>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.buttonContainer}>
         {ACTION_BUTTONS.map((action) => (
