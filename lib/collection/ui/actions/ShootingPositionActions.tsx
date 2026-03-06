@@ -15,61 +15,31 @@ const shootingPositions: Array<{
   position: MatchEventPosition;
   edgeInsets: [number, number, number, number];
 }> = [
-  // Front row (3 positions, closer to alliance wall) — flush with field start line
+  // Front column — flush with start line, full-height thirds, no gaps
   {
     position: MatchEventPosition.LeftTrench,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 0,
-      y: 15,
-      width: 55,
-      height: 90,
-    }),
+    edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 0,   width: 75, height: 112 }),
   },
   {
     position: MatchEventPosition.Hub,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 0,
-      y: 120,
-      width: 55,
-      height: 90,
-    }),
+    edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 112, width: 75, height: 113 }),
   },
   {
     position: MatchEventPosition.RightTrench,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 0,
-      y: 225,
-      width: 55,
-      height: 90,
-    }),
+    edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 225, width: 75, height: 112 }),
   },
-  // Back row (3 positions, further from wall) — same proportional gap preserved
+  // Back column — immediately adjacent to front column
   {
     position: MatchEventPosition.LeftBump,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 75,
-      y: 15,
-      width: 55,
-      height: 90,
-    }),
+    edgeInsets: figmaDimensionsToFieldInsets({ x: 75, y: 0,   width: 75, height: 112 }),
   },
   {
     position: MatchEventPosition.CenterBack,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 75,
-      y: 120,
-      width: 55,
-      height: 90,
-    }),
+    edgeInsets: figmaDimensionsToFieldInsets({ x: 75, y: 112, width: 75, height: 113 }),
   },
   {
     position: MatchEventPosition.RightBump,
-    edgeInsets: figmaDimensionsToFieldInsets({
-      x: 75,
-      y: 225,
-      width: 55,
-      height: 90,
-    }),
+    edgeInsets: figmaDimensionsToFieldInsets({ x: 75, y: 225, width: 75, height: 112 }),
   },
 ];
 
@@ -149,10 +119,9 @@ export const ShootingPositionActions = () => {
               width: "100%",
               height: "100%",
               backgroundColor: isHighlighted(position) ? "#3EE679" : "#e0e0e0",
-              opacity: isHighlighted(position) ? 0.8 : 0.3,
-              borderRadius: 7,
-              alignItems: "center",
-              justifyContent: "center",
+              opacity: isHighlighted(position) ? 0.85 : 0.3,
+              borderWidth: 1,
+              borderColor: "rgba(0,0,0,0.45)",
             }}
             activeOpacity={0.6}
             onPress={() => handlePositionPress(position)}
