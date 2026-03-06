@@ -15,11 +15,11 @@ const shootingPositions: Array<{
   position: MatchEventPosition;
   edgeInsets: [number, number, number, number];
 }> = [
-  // Front row (3 positions, closer to alliance wall)
+  // Front row (3 positions, closer to alliance wall) — flush with field start line
   {
     position: MatchEventPosition.LeftTrench,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 65,
+      x: 0,
       y: 15,
       width: 55,
       height: 90,
@@ -28,7 +28,7 @@ const shootingPositions: Array<{
   {
     position: MatchEventPosition.Hub,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 65,
+      x: 0,
       y: 120,
       width: 55,
       height: 90,
@@ -37,17 +37,17 @@ const shootingPositions: Array<{
   {
     position: MatchEventPosition.RightTrench,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 65,
+      x: 0,
       y: 225,
       width: 55,
       height: 90,
     }),
   },
-  // Back row (3 positions, further from wall)
+  // Back row (3 positions, further from wall) — same proportional gap preserved
   {
     position: MatchEventPosition.LeftBump,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 140,
+      x: 75,
       y: 15,
       width: 55,
       height: 90,
@@ -56,7 +56,7 @@ const shootingPositions: Array<{
   {
     position: MatchEventPosition.CenterBack,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 140,
+      x: 75,
       y: 120,
       width: 55,
       height: 90,
@@ -65,7 +65,7 @@ const shootingPositions: Array<{
   {
     position: MatchEventPosition.RightBump,
     edgeInsets: figmaDimensionsToFieldInsets({
-      x: 140,
+      x: 75,
       y: 225,
       width: 55,
       height: 90,
