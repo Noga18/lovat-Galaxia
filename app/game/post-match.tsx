@@ -476,7 +476,7 @@ const AutoSummary = ({ autoPath, events, startTimestamp, allianceColor }: AutoSu
   const startMs = startTimestamp?.getTime() ?? 0;
 
   // Auto ends at 23 seconds; filter only auto-phase events
-  const autoEndMs = startMs + 23_000;
+  const autoEndMs = startMs + 20_000;
   const autoEvents = events.filter(
     (e) =>
       e.timestamp <= autoEndMs &&
