@@ -15,11 +15,11 @@ export const PreMatchActions = () => {
     position: StartingPosition;
     edgeInsets: [number, number, number, number];
   }> = [
-    // Front row (3 positions)
+    // Front row (3 positions) — flush with the field start line (left edge)
     {
       position: MatchEventPosition.LeftTrench,
       edgeInsets: figmaDimensionsToFieldInsets({
-        x: 65,
+        x: 0,
         y: 15,
         width: 55,
         height: 90,
@@ -28,7 +28,7 @@ export const PreMatchActions = () => {
     {
       position: MatchEventPosition.Hub,
       edgeInsets: figmaDimensionsToFieldInsets({
-        x: 65,
+        x: 0,
         y: 120,
         width: 55,
         height: 90,
@@ -37,17 +37,17 @@ export const PreMatchActions = () => {
     {
       position: MatchEventPosition.RightTrench,
       edgeInsets: figmaDimensionsToFieldInsets({
-        x: 65,
+        x: 0,
         y: 225,
         width: 55,
         height: 90,
       }),
     },
-    // Back row (3 positions)
+    // Back row (3 positions) — shifted left by same 65 units, keeping proportional gap
     {
       position: MatchEventPosition.LeftBump,
       edgeInsets: figmaDimensionsToFieldInsets({
-        x: 140,
+        x: 75,
         y: 15,
         width: 55,
         height: 90,
@@ -56,7 +56,7 @@ export const PreMatchActions = () => {
     {
       position: MatchEventPosition.CenterBack,
       edgeInsets: figmaDimensionsToFieldInsets({
-        x: 140,
+        x: 75,
         y: 120,
         width: 55,
         height: 90,
@@ -65,7 +65,7 @@ export const PreMatchActions = () => {
     {
       position: MatchEventPosition.RightBump,
       edgeInsets: figmaDimensionsToFieldInsets({
-        x: 140,
+        x: 75,
         y: 225,
         width: 55,
         height: 90,
