@@ -43,9 +43,8 @@ export const AutoPathActions = () => {
   const [isClimbed, setIsClimbed] = useState(false);
   const initializedRef = useRef(false);
 
-  // Refs to track press-start time for shoot buttons (duration measurement)
+  // Ref to track press-start time for shoot button (duration measurement)
   const shootPressStartRef = useRef<number | null>(null);
-  const shootMovingPressStartRef = useRef<number | null>(null);
 
   // onLayout on the root container — gives full field dimensions
   const onContainerLayout = (e: LayoutChangeEvent) => {
@@ -164,28 +163,6 @@ export const AutoPathActions = () => {
     });
   };
 
-  // ── Shoot Moving (hold to measure duration) ──────────────────────────
-  const handleShootMovingPressIn = () => {
-    shootMovingPressStartRef.current = Date.now();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    reportState.addEvent({
-      type: MatchEventType.StartScoring,
-      position: MatchEventPosition.NeutralZone,
-    });
-  };
-
-  const handleShootMovingPressOut = () => {
-    if (shootMovingPressStartRef.current === null) return;
-    const durationSec = (Date.now() - shootMovingPressStartRef.current) / 1000;
-    shootMovingPressStartRef.current = null;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    reportState.addEvent({
-      type: MatchEventType.StopScoring,
-      position: MatchEventPosition.NeutralZone,
-      quantity: Math.round(durationSec * 10),
-    });
-  };
-
   return (
     <View style={StyleSheet.absoluteFill} onLayout={onContainerLayout}>
 
@@ -272,15 +249,6 @@ export const AutoPathActions = () => {
           <Text style={styles.buttonText}>Shoot</Text>
         </TouchableOpacity>
 
-        {/* Shoot Moving — held to measure duration */}
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#9370DB" }]}
-          onPressIn={handleShootMovingPressIn}
-          onPressOut={handleShootMovingPressOut}
-          activeOpacity={0.6}
-        >
-          <Text style={styles.buttonText}>Shoot{"\n"}Moving</Text>
-        </TouchableOpacity>
 
       </View>
     </View>
