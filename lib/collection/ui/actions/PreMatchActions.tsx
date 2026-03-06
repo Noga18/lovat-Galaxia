@@ -15,11 +15,11 @@ export const PreMatchActions = () => {
     position: StartingPosition;
     edgeInsets: [number, number, number, number];
   }> = [
-    { position: MatchEventPosition.LeftTrench,  edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 0,   width: 75, height: 68 }) },
-    { position: MatchEventPosition.LeftBump,    edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 68,  width: 75, height: 68 }) },
-    { position: MatchEventPosition.Hub,         edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 136, width: 75, height: 67 }) },
-    { position: MatchEventPosition.RightBump,   edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 203, width: 75, height: 67 }) },
-    { position: MatchEventPosition.RightTrench, edgeInsets: figmaDimensionsToFieldInsets({ x: 0, y: 270, width: 75, height: 67 }) },
+    { position: MatchEventPosition.LeftTrench,  edgeInsets: figmaDimensionsToFieldInsets({ x: 65, y: 0,   width: 55, height: 68 }) },
+    { position: MatchEventPosition.LeftBump,    edgeInsets: figmaDimensionsToFieldInsets({ x: 65, y: 68,  width: 55, height: 68 }) },
+    { position: MatchEventPosition.Hub,         edgeInsets: figmaDimensionsToFieldInsets({ x: 65, y: 136, width: 55, height: 67 }) },
+    { position: MatchEventPosition.RightBump,   edgeInsets: figmaDimensionsToFieldInsets({ x: 65, y: 203, width: 55, height: 67 }) },
+    { position: MatchEventPosition.RightTrench, edgeInsets: figmaDimensionsToFieldInsets({ x: 65, y: 270, width: 55, height: 67 }) },
   ];
 
   return (
